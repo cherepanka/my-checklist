@@ -1,0 +1,47 @@
+name: Append Checklist Data
+
+on:
+  repository_dispatch:
+    types: [add-checklist-item]
+
+jobs:
+  update-file:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Read current data
+        id: read
+        run: |
+          if [ -f data.json ]; then
+            echo "data=$(cat data.json)" >> $GITHUB_OUTPUT
+          else
+            echo 'data="[]"' >> $GITHUB_OUTPUT
+          fi
+
+      - name: Append new item
+        env:
+          NEW_ITEM: ${{ github.event.client_payload.item }}
+        run: |
+          # Используем Python для корректного добавления в JSON
+          python3 -c "
+import json, os
+data = json.loads(os.environ['data'])
+new_item = json.loads(os.environ['NEW_ITEM'])
+data.append(new_item)
+with open('data.json', 'w', encoding='utf-8') as f:
+    json.dump(data, f, ensure_ascii=False, indent=2)
+"
+
+      - name: Commit and Push
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add data.json
+          
+          # Проверяем, есть ли изменения
+          if ! git diff --cached --exit-code; then
+            git commit -m "Add checklist item via web interface"
+            git push
+          fi
