@@ -142,7 +142,8 @@
 
 <script>
     const GIST_ID = '0fed9ed549009aa81461d291686d4f50';
-    const TOKEN = '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';
+    // Вставьте сюда НОВЫЙ токен, который вы сгенерируете в Settings -> Developer settings
+    const TOKEN = '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'; 
     const FILENAME = 'data.json';
 
     let tableData = [];
@@ -233,12 +234,12 @@
         }
     }
 
-    /* --- ФУНКЦИЯ ЭКРАНИРОВАНИЯ (с заменой \t на пробелы) --- */
+    /* --- ФУНКЦИЯ ЭКРАНИРОВАНИЯ (исправлены кавычки « ») --- */
     function jsonEscape(str) {
         if (!str) return '';
-        // Сначала заменяем табуляцию на пробелы, чтобы она не мешала JSON
         let cleanStr = str.replace(/\t/g, '    ');
-        // Затем экранируем спецсимволы
+        // Замена угловых кавычек на прямые
+        cleanStr = cleanStr.replace(/[«»]/g, '"'); 
         return cleanStr.replace(/\\/g, '\\\\')
                        .replace(/"/g, '\\"')
                        .replace(/\n/g, '\\n')
@@ -247,6 +248,12 @@
 
     /* --- ФУНКЦИЯ СОХРАНЕНИЯ --- */
     async function saveToGist() {
+        if (!TOKEN || TOKEN === 'ghp_ВАШ_НОВЫЙ_ТОКЕН_ЗДЕСЬ') {
+            showAlert('❌ ОШИБКА: Токен не задан. Заполните переменную TOKEN в коде.', 'error');
+            console.error('Token is missing');
+            return;
+        }
+
         if (saveTimeout) clearTimeout(saveTimeout);
 
         const safeData = tableData.map(row => ({
@@ -265,7 +272,6 @@
 
         const jsonString = JSON.stringify(payload);
         console.log('ОТПРАВЛЯЕМЫЙ JSON СТРОКА:', jsonString);
-        console.log('РАЗМЕР В БАЙТАХ:', new Blob([jsonString]).size);
 
         if (new Blob([jsonString]).size > 1024 * 1024) {
             showAlert('❌ ОШИБКА 400: Данные слишком тяжелые (лимит GitHub — 1 МБ).', 'error');
@@ -295,12 +301,16 @@
 
             const errorText = await saveRes.text();
 
-            if (saveRes.status === 412) {
-                showAlert('❌ ОШИБКА: Кто-то уже изменил файл! Нажмите «Обновить».', 'error');
+            if (saveRes.status === 401) {
+                showAlert('❌ ОШИБКА 401: Неверный токен (Bad credentials). Сгенерируйте новый.', 'error');
                 return;
             }
             if (saveRes.status === 403) {
-                showAlert('❌ ОШИБКА: Лимит запросов API (403) или нет прав.', 'error');
+                showAlert('❌ ОШИБКА: Лимит запросов API или нет прав Gist.', 'error');
+                return;
+            }
+            if (saveRes.status === 412) {
+                showAlert('❌ ОШИБКА: Кто-то уже изменил файл! Нажмите «Обновить».', 'error');
                 return;
             }
             if (saveRes.status >= 500) {
@@ -323,7 +333,7 @@
             if (e.name === 'AbortError') {
                 showAlert('❌ ОШИБКА: Превышено время ожидания (таймаут).', 'error');
             } else if (e.name === 'TypeError') {
-                showAlert('❌ ОШИБКА: Проблема с сетью или CORS.', 'error');
+                showAlert('❌ ОШИБКА: Проблема с сетью или CORS. Запускайте через локальный сервер.', 'error');
             } else {
                 showAlert(`❌ ОШИБКА: ${e.message}`, 'error');
             }
@@ -382,6 +392,10 @@
             const metaRes = await fetch(`https://api.github.com/gists/${GIST_ID}`, { signal: controller.signal });
             clearTimeout(timeoutId);
 
+            if (metaRes.status === 401) {
+                showAlert('❌ ОШИБКА 401: Неверный токен при загрузке.', 'error');
+                return;
+            }
             if (metaRes.status === 403) {
                 showAlert('❌ ОШИБКА: Лимит запросов API.', 'error');
                 return;
@@ -459,6 +473,11 @@
 
     document.getElementById('saveBtn').addEventListener('click', saveToGist);
     document.addEventListener('keydown', handleKeyDown);
+
+    // Проверка токена при старте
+    if (!TOKEN || TOKEN === 'ghp_ВАШ_НОВЫЙ_ТОКЕН_ЗДЕСЬ') {
+        console.error('GIST TOKEN IS NOT SET. Please paste your PAT into the TOKEN variable.');
+    }
 
     loadFromGist();
 </script>
