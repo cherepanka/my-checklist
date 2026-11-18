@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Чек-лист: Маркировка</title>
+    <title>Чек-лист: Маркировка (Автосохранение в GitHub)</title>
     <style>
         html, body { 
             height: 100%; margin: 0; padding: 0; 
@@ -55,7 +55,6 @@
         #addBtn { background-color: #16a34a; color: white; }
         #editSaveBtn { background-color: #d97706; color: white; }
         #cancelEditBtn { background-color: #6b7280; color: white; }
-        #saveBtn { background-color: #2563eb; color: white; }
         #updateBtn { background-color: #374151; color: white; }
 
         .input-row { 
@@ -119,7 +118,6 @@
             
             <div class="action-buttons">
                 <button id="updateBtn">🔄 Обновить данные</button>
-                <button id="saveBtn">💾 Сохранить на сервер</button>
             </div>
 
             <div class="input-row">
@@ -141,24 +139,20 @@
 </div>
 
 <script>
-    const GIST_ID = '0fed9ed549009aa81461d291686d4f50';
-    // Вставьте сюда НОВЫЙ токен, который вы сгенерируете в Settings -> Developer settings
-    const TOKEN = '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'; 
-    const FILENAME = 'data.json';
+    /* --- НАСТРОЙКИ (ОБЯЗАТЕЛЬНО ЗАМЕНИТЬ) --- */
+    const REPO_OWNER = 'cherepanka;       // Ваш ник на GitHub
+    const REPO_NAME = 'my-checklist';   // Имя репозитория
+    const WEBHOOK_SECRET = 'SuperChecklist123!';   // Тот самый секрет из Settings -> Secrets
 
     let tableData = [];
-    let serverLastModified = null; 
-    let serverEtag = null; 
     let editingIndex = null;
-    let saveTimeout = null;
-    let updateDebounce = null;
 
     function showAlert(message, type = 'info') {
         const box = document.getElementById('alertBox');
         box.className = `status ${type}`;
         box.textContent = message;
         box.style.display = 'block';
-        setTimeout(() => box.style.display = 'none', 5000);
+        setTimeout(() => box.style.display = 'none', 3000);
     }
 
     function wrapSelection(tag) {
@@ -197,7 +191,7 @@
             const editLink = document.createElement('a'); editLink.href = '#'; editLink.textContent = 'Ред.'; editLink.className = 'edit-btn';
             editLink.onclick = (e) => { e.preventDefault(); startEditing(index); };
             const delLink = document.createElement('a'); delLink.href = '#'; delLink.textContent = 'Х'; delLink.className = 'delete-btn';
-            delLink.onclick = (e) => { e.preventDefault(); if (confirm('Удалить этот пункт чек-листа?')) { tableData.splice(index, 1); cancelEditing(); renderTable(tableData); showAlert('Пункт удален.', 'info'); } };
+            delLink.onclick = (e) => { e.preventDefault(); if (confirm('Удалить этот пункт чек-листа?')) { tableData.splice(index, 1); localStorage.setItem('checklist_data', JSON.stringify(tableData)); renderTable(tableData); showAlert('Пункт удален.', 'info'); } };
 
             actionsDiv.appendChild(upLink); actionsDiv.appendChild(downLink); actionsDiv.appendChild(editLink); actionsDiv.appendChild(delLink); 
             cell4.appendChild(actionsDiv);
@@ -205,8 +199,8 @@
     }
 
     function moveRow(index, direction) {
-        if (direction === 'up' && index > 0) { [tableData[index], tableData[index - 1]] = [tableData[index - 1], tableData[index]]; renderTable(tableData); showAlert('Строка перемещена вверх.', 'info'); }
-        if (direction === 'down' && index < tableData.length - 1) { [tableData[index], tableData[index + 1]] = [tableData[index + 1], tableData[index]]; renderTable(tableData); showAlert('Строка перемещена вниз.', 'info'); }
+        if (direction === 'up' && index > 0) { [tableData[index], tableData[index - 1]] = [tableData[index - 1], tableData[index]]; localStorage.setItem('checklist_data', JSON.stringify(tableData)); renderTable(tableData); showAlert('Строка перемещена вверх.', 'info'); }
+        if (direction === 'down' && index < tableData.length - 1) { [tableData[index], tableData[index + 1]] = [tableData[index + 1], tableData[index]]; localStorage.setItem('checklist_data', JSON.stringify(tableData)); renderTable(tableData); showAlert('Строка перемещена вниз.', 'info'); }
     }
 
     function startEditing(index) {
@@ -234,218 +228,56 @@
         }
     }
 
-    /* --- ФУНКЦИЯ ЭКРАНИРОВАНИЯ (исправлены кавычки « ») --- */
-    function jsonEscape(str) {
-        if (!str) return '';
-        let cleanStr = str.replace(/\t/g, '    ');
-        // Замена угловых кавычек на прямые
-        cleanStr = cleanStr.replace(/[«»]/g, '"'); 
-        return cleanStr.replace(/\\/g, '\\\\')
-                       .replace(/"/g, '\\"')
-                       .replace(/\n/g, '\\n')
-                       .replace(/\r/g, '\\r');
-    }
+    /* --- ОТПРАВКА В GITHUB ACTIONS --- */
+    async function sendToGitHub(item) {
+        const url = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/dispatches`;
 
-    /* --- ФУНКЦИЯ СОХРАНЕНИЯ --- */
-    async function saveToGist() {
-        if (!TOKEN || TOKEN === 'ghp_ВАШ_НОВЫЙ_ТОКЕН_ЗДЕСЬ') {
-            showAlert('❌ ОШИБКА: Токен не задан. Заполните переменную TOKEN в коде.', 'error');
-            console.error('Token is missing');
-            return;
-        }
-
-        if (saveTimeout) clearTimeout(saveTimeout);
-
-        const safeData = tableData.map(row => ({
-            col1: jsonEscape(row.col1),
-            col2: jsonEscape(row.col2),
-            col3: jsonEscape(row.col3)
-        }));
-
-        const payload = { 
-            files: { 
-                [FILENAME]: { 
-                    content: JSON.stringify(safeData, null, 2) 
-                } 
-            } 
+        const payload = {
+            event_type: 'add-checklist-item',
+            client_payload: {
+                item: item,
+                secret: WEBHOOK_SECRET
+            }
         };
-
-        const jsonString = JSON.stringify(payload);
-        console.log('ОТПРАВЛЯЕМЫЙ JSON СТРОКА:', jsonString);
-
-        if (new Blob([jsonString]).size > 1024 * 1024) {
-            showAlert('❌ ОШИБКА 400: Данные слишком тяжелые (лимит GitHub — 1 МБ).', 'error');
-            return;
-        }
-
-        const headers = {
-            'Authorization': `token ${TOKEN}`,
-            'Content-Type': 'application/json'
-        };
-
-        if (serverEtag) {
-            headers['If-Match'] = serverEtag;
-        }
 
         try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 15000);
-
-            const saveRes = await fetch(`https://api.github.com/gists/${GIST_ID}`, { 
-                method: 'PATCH', 
-                headers: headers, 
-                body: jsonString,
-                signal: controller.signal
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/vnd.github+json',
+                    'X-GitHub-Api-Version': '2022-11-28'
+                    // Токен НЕ НУЖЕН
+                },
+                body: JSON.stringify(payload)
             });
-            clearTimeout(timeoutId);
 
-            const errorText = await saveRes.text();
-
-            if (saveRes.status === 401) {
-                showAlert('❌ ОШИБКА 401: Неверный токен (Bad credentials). Сгенерируйте новый.', 'error');
-                return;
+            if (response.status === 204) {
+                showAlert('✅ Данные отправлены в GitHub.', 'success');
+            } else {
+                const err = await response.json();
+                showAlert('❌ Ошибка отправки: ' + err.message, 'error');
             }
-            if (saveRes.status === 403) {
-                showAlert('❌ ОШИБКА: Лимит запросов API или нет прав Gist.', 'error');
-                return;
-            }
-            if (saveRes.status === 412) {
-                showAlert('❌ ОШИБКА: Кто-то уже изменил файл! Нажмите «Обновить».', 'error');
-                return;
-            }
-            if (saveRes.status >= 500) {
-                showAlert('❌ ОШИБКА: Сервер GitHub (5xx).', 'error');
-                return;
-            }
-            if (saveRes.status === 400) {
-                showAlert(`❌ ОШИБКА 400 (Bad Request): ${errorText}`, 'error');
-                return;
-            }
-            if (!saveRes.ok) {
-                showAlert(`❌ Ошибка ${saveRes.status}: ${errorText}`, 'error');
-                return;
-            }
-
-            showAlert('✅ Отправлено. Ждем подтверждения версии...', 'info');
-            saveTimeout = setTimeout(() => { waitForServerUpdate(tableData); }, 2000);
-
         } catch (e) {
-            if (e.name === 'AbortError') {
-                showAlert('❌ ОШИБКА: Превышено время ожидания (таймаут).', 'error');
-            } else if (e.name === 'TypeError') {
-                showAlert('❌ ОШИБКА: Проблема с сетью или CORS. Запускайте через локальный сервер.', 'error');
-            } else {
-                showAlert(`❌ ОШИБКА: ${e.message}`, 'error');
-            }
+            showAlert('❌ Сетевая ошибка.', 'error');
         }
     }
 
-    async function waitForServerUpdate(expectedData) {
-        try {
-            showAlert('🔄 Проверка записи на сервере...', 'info');
-            const checkRes = await fetch(`https://api.github.com/gists/${GIST_ID}`);
-            const checkGist = await checkRes.json();
-
-            if (!checkGist.files[FILENAME]) { 
-                showAlert('❌ ОШИБКА: Файл не найден на сервере.', 'error'); 
-                return; 
-            }
-
-            const fileUrl = checkGist.files[FILENAME].raw_url + `?t=${Date.now()}`;
-            const raw = await fetch(fileUrl);
-            const text = await raw.text();
-            
-            let serverData;
-            try {
-                serverData = JSON.parse(text);
-            } catch (e) {
-                showAlert('❌ ОШИБКА: Сервер вернул некорректный JSON.', 'error');
-                return;
-            }
-
-            if (JSON.stringify(serverData) === JSON.stringify(expectedData)) {
-                tableData = serverData;
-                serverLastModified = checkRes.headers.get('Last-Modified'); 
-                serverEtag = checkRes.headers.get('ETag'); 
-                renderTable(tableData);
-                showAlert('✅ Данные подтверждены сервером!', 'success');
-                return true;
-            } else {
-                showAlert('❌ ОШИБКА: Файл изменился в процессе. Нажмите «Обновить».', 'error');
-                return false;
-            }
-        } catch (e) { 
-            if (e.name === 'AbortError') {
-                showAlert('❌ ОШИБКА: Таймаут при проверке.', 'error');
-            } else {
-                showAlert('❌ ОШИБКА: Связь при проверке.', 'error');
-            }
-            return false;
-        }
-    }
-
-    async function loadFromGist() {
-        try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 15000);
-
-            const metaRes = await fetch(`https://api.github.com/gists/${GIST_ID}`, { signal: controller.signal });
-            clearTimeout(timeoutId);
-
-            if (metaRes.status === 401) {
-                showAlert('❌ ОШИБКА 401: Неверный токен при загрузке.', 'error');
-                return;
-            }
-            if (metaRes.status === 403) {
-                showAlert('❌ ОШИБКА: Лимит запросов API.', 'error');
-                return;
-            }
-            if (metaRes.status >= 500) {
-                showAlert('❌ ОШИБКА: Сервер GitHub недоступен.', 'error');
-                return;
-            }
-            if (!metaRes.ok) {
-                showAlert(`❌ ОШИБКА загрузки (статус ${metaRes.status}).`, 'error');
-                return;
-            }
-
-            const gist = await metaRes.json();
-            if (!gist.files[FILENAME]) { showAlert('❌ ОШИБКА: Файл не найден.', 'error'); return; }
-
-            const fileUrl = gist.files[FILENAME].raw_url + `?t=${Date.now()}`;
-            const raw = await fetch(fileUrl);
-            const text = await raw.text();
-            
-            let loadedData;
-            try {
-                loadedData = JSON.parse(text);
-            } catch (e) {
-                showAlert('❌ ОШИБКА: Файл на сервере поврежден (не JSON).', 'error');
-                return;
-            }
-
-            tableData = loadedData;
-            serverLastModified = metaRes.headers.get('Last-Modified'); 
-            serverEtag = metaRes.headers.get('ETag'); 
-            renderTable(tableData);
-            showAlert('📥 Данные с сервера загружены.', 'success');
-        } catch (e) {
-            if (e.name === 'AbortError') {
-                showAlert('❌ ОШИБКА: Таймаут при загрузке.', 'error');
-            } else {
-                showAlert('❌ ОШИБКА: Сеть или формат файла.', 'error');
-            }
-        }
-    }
-
+    /* --- ОБРАБОТЧИКИ --- */
     document.getElementById('addBtn').addEventListener('click', () => {
         const c1 = document.getElementById('newCol1').value.trim();
         const c2 = document.getElementById('newCol2').value.trim();
         const c3 = document.getElementById('newCol3').value.trim();
         if (!c1 && !c2 && !c3) return;
-        tableData.push({ col1: c1, col2: c2, col3: c3 }); 
-        renderTable(tableData); 
+
+        const newItem = { col1: c1, col2: c2, col3: c3 };
+        
+        // 1. Мгновенно показываем пользователю
+        tableData.push(newItem);
+        renderTable(tableData);
         cancelEditing();
+
+        // 2. Отправляем на сервер GitHub для сохранения в data.json
+        sendToGitHub(newItem);
     });
 
     document.getElementById('editSaveBtn').addEventListener('click', () => {
@@ -454,32 +286,47 @@
         const c2 = document.getElementById('newCol2').value.trim();
         const c3 = document.getElementById('newCol3').value.trim();
         if (!c1 && !c2 && !c3) return;
+        
         tableData[editingIndex] = { col1: c1, col2: c2, col3: c3 };
+        localStorage.setItem('checklist_data', JSON.stringify(tableData));
         renderTable(tableData);
         cancelEditing();
-        showAlert('Пункт обновлен.', 'success');
+        showAlert('Пункт обновлен локально.', 'info');
     });
 
     document.getElementById('cancelEditBtn').addEventListener('click', cancelEditing);
     document.getElementById('searchInput').addEventListener('input', filterTable);
-
+    
     document.getElementById('updateBtn').addEventListener('click', () => {
-        if (updateDebounce) return;
-        updateDebounce = setTimeout(() => {
-            updateDebounce = null;
-        }, 2000);
-        loadFromGist();
+        // Загружаем актуальный data.json из репозитория
+        loadData(); 
     });
 
-    document.getElementById('saveBtn').addEventListener('click', saveToGist);
     document.addEventListener('keydown', handleKeyDown);
 
-    // Проверка токена при старте
-    if (!TOKEN || TOKEN === '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') {
-        console.error('GIST TOKEN IS NOT SET. Please paste your PAT into the TOKEN variable.');
+    /* --- ЗАПУСК --- */
+    async function loadData() {
+        try {
+            const res = await fetch('data.json?t=' + Date.now());
+            if (!res.ok) throw new Error(`Status: ${res.status}`);
+            tableData = await res.json();
+            renderTable(tableData);
+            showAlert('📥 Данные загружены.', 'success');
+        } catch (e) {
+            // Если data.json еще не создан или ошибка сети
+            const saved = localStorage.getItem('checklist_data');
+            if (saved) {
+                tableData = JSON.parse(saved);
+                renderTable(tableData);
+                showAlert('📥 Загружены локальные данные.', 'info');
+            } else {
+                tableData = [];
+                renderTable([]);
+            }
+        }
     }
 
-    loadFromGist();
+    loadData();
 </script>
 
 </body>
