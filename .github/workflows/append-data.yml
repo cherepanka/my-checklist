@@ -23,25 +23,44 @@ jobs:
       - name: Append new item
         env:
           NEW_ITEM: ${{ github.event.client_payload.item }}
+          SECRET: ${{ secrets.WEBHOOK_SECRET }}
         run: |
-          # Используем Python для корректного добавления в JSON
-          python3 -c "
-import json, os
-data = json.loads(os.environ['data'])
-new_item = json.loads(os.environ['NEW_ITEM'])
-data.append(new_item)
+          # Проверка секретного ключа
+          if [ "${{ github.event.client_payload.secret }}" != "$SECRET" ]; then
+            echo "Ошибка: Неверный секретный ключ"
+            exit 1
+          fi
+
+          # Python-скрипт для корректного добавления в JSON
+          python3 - << 'EOF'
+import json
+import os
+
+# Читаем данные, которые подготовили на предыдущем шаге
+current_data = json.loads(os.getenv('data', '[]'))
+
+# Читаем новый элемент из переменной окружения
+new_item = json.loads(os.getenv('NEW_ITEM', '{}'))
+
+# Добавляем новый элемент
+current_data.append(new_item)
+
+# Сохраняем файл с читаемым форматированием (кириллица поддерживается)
 with open('data.json', 'w', encoding='utf-8') as f:
-    json.dump(data, f, ensure_ascii=False, indent=2)
-"
+    json.dump(current_data, f, ensure_ascii=False, indent=2)
+
+print("Файл успешно обновлен")
+EOF
 
       - name: Commit and Push
         run: |
           git config user.name 'github-actions[bot]'
-          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          
           git add data.json
           
-          # Проверяем, есть ли изменения
+          # Если есть изменения (файл изменился)
           if ! git diff --cached --exit-code; then
-            git commit -m "Add checklist item via web interface"
+            git commit -m "Add checklist item via web interface [skip ci]"
             git push
           fi
