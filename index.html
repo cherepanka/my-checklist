@@ -2,97 +2,203 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Групповой Чек-лист</title>
+    <title>Чек-лист: Маркировка (Групповой)</title>
     <style>
-        /* ... (Весь ваш CSS остается без изменений) ... */
-        body { font-family: Arial, sans-serif; padding: 20px; background: #f4f4f9; }
-        .wrapper { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); max-width: 900px; margin: auto; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
-        th { background: #007bff; color: white; }
-        button { padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; margin: 2px; }
-        #addBtn { background: #28a745; color: white; }
-        #updateBtn { background: #007bff; color: white; }
-        #alertBox { padding: 10px; border-radius: 4px; margin-bottom: 15px; display: none; }
-        .success { background: #d4edda; color: #155724; }
-        .error { background: #f8d7da; color: #721c24; }
-        .input-row input { padding: 8px; border: 1px solid #ccc; border-radius: 4px; width: 30%; }
+        /* --- СТИЛИ (как в самом первом вашем запросе) --- */
+        html, body { height: 100%; margin: 0; padding: 0; font-family: Verdana, Geneva, sans-serif; background-color: #f8f9fa; box-sizing: border-box; }
+        *, *::before, *::after { box-sizing: inherit; }
+        .container { width: 100vw; height: 100vh; padding: 20px; background-color: #f8f9fa; overflow: auto; box-sizing: border-box; display: flex; align-items: flex-start; justify-content: center; }
+        .wrapper { width: 100%; max-width: 1600px; background: white; padding: 32px 40px; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.08); border: 1px solid #e5e7eb; }
+        h2 { margin-top: 0; margin-bottom: 32px; color: #1e293b; font-size: 28px; font-weight: 700; text-align: center; }
+        .format-info { background-color: #e0f2f1; border-left: 5px solid #00b48f; padding: 16px 22px; margin-bottom: 32px; border-radius: 10px; font-size: 16px; color: #004349; }
+        .action-buttons { display: flex; gap: 14px; margin-bottom: 32px; flex-wrap: wrap; justify-content: center; }
+        .action-buttons button { padding: 8px 16px; border: none; border-radius: 12px; cursor: pointer; font-size: 14px; font-weight: 600; transition: transform 0.15s, box-shadow 0.2s, background-color 0.2s; display: flex; align-items: center; gap: 6px; }
+        .action-buttons button:hover { transform: translateY(-3px); box-shadow: 0 6px 16px rgba(0,0,0,0.12); }
+        #addBtn { background-color: #16a34a; color: white; }
+        #editSaveBtn { background-color: #d97706; color: white; }
+        #cancelEditBtn { background-color: #6b7280; color: white; }
+        #updateBtn { background-color: #374151; color: white; }
+        .input-row { display: flex; gap: 14px; margin-bottom: 32px; align-items: center; flex-wrap: wrap; }
+        .input-row input { padding: 14px 18px; border: 2px solid #cbd5e1; border-radius: 12px; flex-grow: 1; flex-basis: 260px; font-size: 16px; transition: border-color 0.2s, box-shadow 0.2s; }
+        .input-row input:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15); }
+        #searchInput { width: 100%; max-width: 450px; padding: 14px 18px; border-radius: 12px; border: 2px solid #cbd5e1; box-sizing: border-box; font-size: 16px; }
+        table { width: 100%; border-collapse: collapse; border: 2px solid #e2e8f0; border-radius: 16px; overflow: hidden; background: white; display: table; table-layout: fixed; font-size: 16px; }
+        thead { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border-bottom: 3px solid #047857; }
+        th { padding: 16px 20px; text-align: left; font-weight: 700; font-size: 14px; letter-spacing: 0.5px; display: flex; align-items: center; gap: 10px; position: sticky; top: 0; z-index: 2; }
+        th:first-child { border-right: 3px solid rgba(255,255,255,0.4); }
+        th:nth-child(2) { border-right: 3px solid rgba(255,255,255,0.4); }
+        th:nth-child(3) { border-right: 3px solid rgba(255,255,255,0.4); }
+        thead tr { display: grid; grid-template-columns: 1fr 2fr 1fr 160px; }
+        tbody tr { display: grid; grid-template-columns: 1fr 2fr 1fr 160px; align-items: center; border-bottom: 2px solid #e2e8f0; transition: background-color 0.2s; }
+        tbody tr:hover { background-color: #f8fafc; }
+        tbody tr:last-child { border-bottom: none; }
+        td { padding: 14px 18px; text-align: left; word-wrap: break-word; color: #475569; min-height: 52px; position: relative; line-height: 1.6; border-right: 2px solid #e2e8f0; }
+        td:nth-child(4) { border-right: none; padding: 8px; }
+        td:first-child { background-color: #fef2f2; font-weight: 700; color: #991b1b; border-right: 3px solid #fecdd3; }
+        td:nth-child(3) { background-color: #f0fdf9; font-style: italic; color: #047857; border-right: 3px solid #bae6fd; }
+        td:nth-child(2) { border-right: 3px solid #e2e8f0; }
+        .action-buttons-cell { display: flex; gap: 4px; padding: 0; position: relative; justify-content: center; flex-wrap: wrap; }
+        .edit-btn, .delete-btn, .move-up-btn, .move-down-btn { padding: 5px 10px; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: 500; transition: transform 0.1s, box-shadow 0.2s; display: flex; align-items: center; justify-content: center; min-width: 50px; height: 30px; }
+        .edit-btn { background-color: #dbeafe; color: #1e40af; }
+        .edit-btn:hover { background-color: #bfdbfe; transform: scale(1.07); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .delete-btn { background-color: #fee2e2; color: #b91c1c; }
+        .delete-btn:hover { background-color: #fecaca; transform: scale(1.07); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .move-up-btn { background-color: #f3f4f7; color: #374151; }
+        .move-up-btn:hover { background-color: #e5e7eb; transform: scale(1.07); }
+        .move-down-btn { background-color: #f3f4f7; color: #374151; }
+        .move-down-btn:hover { background-color: #e5e7eb; transform: scale(1.07); }
+        td[contenteditable="true"] { cursor: text; outline: none; background-color: white !important; line-height: 1.6; padding: 14px 18px; border: 2px solid transparent; border-radius: 8px; }
+        td[contenteditable="true"]:focus { border-color: #2563eb; box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15); background-color: #f8fafc !important; }
     </style>
 </head>
 <body>
 
-<div class="wrapper">
-    <h2>📋 Общий чек-лист</h2>
-    <div id="alertBox"></div>
-    
-    <div class="input-row">
-        <input type="text" id="newCol1" placeholder="Ситуация">
-        <input type="text" id="newCol2" placeholder="Решение">
-        <input type="text" id="newCol3" placeholder="Цель">
-        <button id="addBtn">➕ Добавить</button>
+<div class="container">
+    <div class="wrapper">
+        <h2>📋 Чек-лист: Маркировка</h2>
+        <div class="format-info"><strong>Как пользоваться:</strong> <code>&lt;b&gt;&lt;/b&gt;</code> — жирный, <code>&lt;i&gt;&lt;/i&gt;</code> — курсив, <code>&lt;u&gt;&lt;/u&gt;</code> — подчеркнутый, <code>&lt;br&gt;</code> — новая строка </div>
+        <div id="mainPanel">
+            <div id="alertBox"></div>
+            <div class="action-buttons">
+                <button id="updateBtn">🔄 Обновить данные</button>
+            </div>
+            <div class="input-row">
+                <input type="text" id="newCol1" placeholder="❗ Ситуация (что случилось)">
+                <input type="text" id="newCol2" placeholder="🛠️ Решение (как исправить)">
+                <input type="text" id="newCol3" placeholder="🎯 Цель (зачем это делать)">
+                <button id="addBtn">➕ Добавить запись</button>
+                <button id="editSaveBtn" style="display: none;">✅ Сохранить изменения</button>
+                <button id="cancelEditBtn" style="display: none;">❌ Отмена</button>
+            </div>
+            <div style="margin-bottom: 32px;"><input type="text" id="searchInput" placeholder="🔎 Поиск по чек-листу..."></div>
+            <table id="myTable"><thead><tr><th>🚩 Ситуация</th><th>🛠️ Решение</th><th>🎯 Цель</th><th>Управление</th></tr></thead><tbody></tbody></table>
+        </div>
     </div>
-
-    <table id="myTable">
-        <thead><tr><th>Ситуация</th><th>Решение</th><th>Цель</th><th>Управление</th></tr></thead>
-        <tbody></tbody>
-    </table>
-    
-    <button id="updateBtn">🔄 Обновить данные</button>
 </div>
 
 <script>
-    /* --- НАСТРОЙКИ (ОБЯЗАТЕЛЬНО ИЗМЕНИТЬ) --- */
+    /* --- НАСТРОЙКИ (ОБЯЗАТЕЛЬНО ЗАМЕНИТЬ) --- */
     const REPO_OWNER = 'cherepanka'; 
     const REPO_NAME = 'my-checklist';
     const WORKFLOW_FILE = 'save-from-web.yml'; // Имя файла из Шага 2
     const WEBHOOK_SECRET = 'SuperChecklist1997!'; 
 
     let tableData = [];
+    let editingIndex = null;
 
-    function showAlert(msg, type = 'success') {
+    function showAlert(message, type = 'info') {
         const box = document.getElementById('alertBox');
-        box.textContent = msg;
         box.className = type;
+        box.textContent = message;
         box.style.display = 'block';
         setTimeout(() => box.style.display = 'none', 3000);
     }
 
-    function renderTable() {
+    function wrapSelection(tag) {
+        const sel = window.getSelection();
+        if (sel.isCollapsed || !sel.rangeCount) return;
+        const active = document.activeElement;
+        if (!active || active.getAttribute('contenteditable') !== 'true') return;
+        const range = sel.getRangeAt(0);
+        const selectedText = range.extractContents();
+        const wrapper = document.createElement(tag);
+        wrapper.appendChild(selectedText);
+        range.insertNode(wrapper);
+    }
+
+    function renderTable(data) {
         const tbody = document.querySelector('#myTable tbody');
         tbody.innerHTML = '';
-        tableData.forEach((row, i) => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${row.col1}</td>
-                <td>${row.col2}</td>
-                <td>${row.col3}</td>
-                <td><button onclick="deleteRow(${i})">Х</button></td>
-            `;
-            tbody.appendChild(tr);
+        data.forEach((row, index) => {
+            const newRow = tbody.insertRow();
+            newRow.style.display = 'grid';
+            newRow.style.gridTemplateColumns = '1fr 2fr 1fr 160px';
+            newRow.style.alignItems = 'center';
+
+            const cell1 = newRow.insertCell(); cell1.innerHTML = row.col1 || ''; cell1.setAttribute('contenteditable', 'true');
+            const cell2 = newRow.insertCell(); cell2.innerHTML = row.col2 || ''; cell2.setAttribute('contenteditable', 'true');
+            const cell3 = newRow.insertCell(); cell3.innerHTML = row.col3 || ''; cell3.setAttribute('contenteditable', 'true');
+            const cell4 = newRow.insertCell();
+            const actionsDiv = document.createElement('div'); actionsDiv.className = 'action-buttons-cell';
+
+            const upLink = document.createElement('a'); upLink.href = '#'; upLink.innerHTML = '▲'; upLink.className = 'move-up-btn';
+            upLink.onclick = (e) => { e.preventDefault(); moveRow(index, 'up'); saveData(); }; if (index === 0) upLink.style.display = 'none';
+            const downLink = document.createElement('a'); downLink.href = '#'; downLink.innerHTML = '▼'; downLink.className = 'move-down-btn';
+            downLink.onclick = (e) => { e.preventDefault(); moveRow(index, 'down'); saveData(); }; if (index === data.length - 1) downLink.style.display = 'none';
+
+            const editLink = document.createElement('a'); editLink.href = '#'; editLink.textContent = 'Ред.'; editLink.className = 'edit-btn';
+            editLink.onclick = (e) => { e.preventDefault(); startEditing(index); };
+            const delLink = document.createElement('a'); delLink.href = '#'; delLink.textContent = 'Х'; delLink.className = 'delete-btn';
+            delLink.onclick = (e) => { e.preventDefault(); if (confirm('Удалить этот пункт?')) { tableData.splice(index, 1); renderTable(tableData); saveData(); } };
+
+            actionsDiv.appendChild(upLink); actionsDiv.appendChild(downLink); actionsDiv.appendChild(editLink); actionsDiv.appendChild(delLink); 
+            cell4.appendChild(actionsDiv);
         });
     }
 
-    function deleteRow(index) {
-        tableData.splice(index, 1);
-        renderTable();
-        saveData(); // Автосохранение после удаления
+    function moveRow(index, direction) {
+        if (direction === 'up' && index > 0) { [tableData[index], tableData[index - 1]] = [tableData[index - 1], tableData[index]]; renderTable(tableData); }
+        if (direction === 'down' && index < tableData.length - 1) { [tableData[index], tableData[index + 1]] = [tableData[index + 1], tableData[index]]; renderTable(tableData); }
     }
 
-    /* --- АВТОМАТИЧЕСКОЕ СОХРАНЕНИЕ --- */
+    function startEditing(index) {
+        editingIndex = index; 
+        const row = tableData[index];
+        document.getElementById('newCol1').value = row.col1.replace(/<[^>]*>/g, '');
+        document.getElementById('newCol2').value = row.col2.replace(/<[^>]*>/g, '');
+        document.getElementById('newCol3').value = row.col3.replace(/<[^>]*>/g, '');
+        document.getElementById('addBtn').style.display = 'none'; 
+        document.getElementById('editSaveBtn').style.display = 'inline-block'; 
+        document.getElementById('cancelEditBtn').style.display = 'inline-block';
+    }
+    
+    function cancelEditing() {
+        editingIndex = null; 
+        document.getElementById('newCol1').value = ''; 
+        document.getElementById('newCol2').value = ''; 
+        document.getElementById('newCol3').value = '';
+        document.getElementById('addBtn').style.display = 'inline-block'; 
+        document.getElementById('editSaveBtn').style.display = 'none'; 
+        document.getElementById('cancelEditBtn').style.display = 'none';
+    }
+    
+    function filterTable() {
+        const filter = document.getElementById('searchInput').value.toLowerCase(); 
+        const rows = document.querySelectorAll('#myTable tbody tr'); 
+        rows.forEach(row => { const text = row.textContent.toLowerCase(); row.style.display = text.includes(filter) ? '' : 'none'; }); 
+    }
+    
+    function handleKeyDown(e) {
+        const active = document.activeElement; 
+        if (active && active.getAttribute('contenteditable') === 'true') {
+            if (e.ctrlKey && e.key === 'b') { e.preventDefault(); wrapSelection('b'); } 
+            if (e.ctrlKey && e.key === 'i') { e.preventDefault(); wrapSelection('i'); }
+            if (e.ctrlKey && e.key === 'u') { e.preventDefault(); wrapSelection('u'); } 
+            if (e.shiftKey && e.key === 'Enter') { e.preventDefault(); document.execCommand('insertHTML', false, '<br>'); }
+            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); }
+        }
+    }
+
+    /* --- АВТОМАТИЧЕСКОЕ СОХРАНЕНИЕ (Action) --- */
     async function saveData() {
         try {
-            // URL для запуска workflow_dispatch
             const url = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/actions/workflows/${WORKFLOW_FILE}/dispatches`;
-
+            
+            // ВНИМАНИЕ: Этот запрос НЕ сработает без внешнего прокси (Pipedream), 
+            // так как браузер не может авторизовать workflow_dispatch.
+            // Но интерфейс кнопок будет работать.
+            
             const response = await fetch(url, {
                 method: 'POST',
                 headers: {
                     'Accept': 'application/vnd.github+json',
                     'Content-Type': 'application/json'
-                    // Токен НЕ НУЖЕН, если Action публичный, но нужен auth для запуска workflow
-                    // ВНИМАНИЕ: Чтобы это сработало без токена, нужно использовать Personal Access Token в заголовках
-                    // НО мы не хотим его в HTML. 
-                    // РЕШЕНИЕ: Используем Public Gist для чтения, а для записи просим Action.
+                    /* 
+                       АВТОРИЗАЦИЯ:
+                       Чтобы это заработало, запрос должен идти через Pipedream/Cloudflare.
+                       Если вы хотите тестировать локально без них, закомментируйте этот блок saveData 
+                       и раскомментируйте блок "Локальное сохранение" ниже.
+                    */
                 },
                 body: JSON.stringify({
                     ref: 'main',
@@ -104,28 +210,36 @@
             });
 
             if (response.ok) {
-                showAlert('✅ Данные отправлены на сохранение!');
+                showAlert('✅ Сохранено в GitHub!', 'success');
             } else {
                 const err = await response.json();
-                showAlert('❌ Ошибка: ' + err.message, 'error');
+                console.error(err);
+                showAlert('❌ Ошибка сохранения (см. консоль)', 'error');
             }
         } catch (e) {
             showAlert('❌ Сетевая ошибка.', 'error');
         }
     }
 
-    /* --- ЗАГРУЗКА ДАННЫХ (из data.json) --- */
+    /* --- ЛОКАЛЬНОЕ СОХРАНЕНИЕ (для теста, если Action не настроен) --- */
+    /*
+    function saveData() {
+        console.log('Данные сохранены локально');
+        showAlert('Локальные изменения (не в GitHub)', 'info');
+    }
+    */
+
     async function loadData() {
         try {
             const res = await fetch('data.json?t=' + Date.now());
             if (!res.ok) throw new Error('File not found');
             const data = await res.json();
             tableData = data;
-            renderTable();
-            showAlert('📥 Данные загружены.');
+            renderTable(tableData);
+            showAlert('📥 Данные загружены.', 'success');
         } catch (e) {
             tableData = [];
-            renderTable();
+            renderTable(tableData);
         }
     }
 
@@ -135,22 +249,29 @@
         const c2 = document.getElementById('newCol2').value.trim();
         const c3 = document.getElementById('newCol3').value.trim();
         if (!c1 || !c2 || !c3) return;
-
-        tableData.push({ col1: c1, col2: c2, col3: c3 });
-        renderTable();
-        
-        // Очищаем поля
-        document.getElementById('newCol1').value = '';
-        document.getElementById('newCol2').value = '';
-        document.getElementById('newCol3').value = '';
-
-        // Автоматически сохраняем
+        tableData.push({ col1: c1, col2: c2, col3: c3 }); 
+        renderTable(tableData); 
+        cancelEditing();
         saveData();
     });
 
-    document.getElementById('updateBtn').addEventListener('click', loadData);
+    document.getElementById('editSaveBtn').addEventListener('click', () => {
+        if (editingIndex === null) return;
+        const c1 = document.getElementById('newCol1').value.trim();
+        const c2 = document.getElementById('newCol2').value.trim();
+        const c3 = document.getElementById('newCol3').value.trim();
+        if (!c1 || !c2 || !c3) return;
+        tableData[editingIndex] = { col1: c1, col2: c2, col3: c3 };
+        renderTable(tableData);
+        cancelEditing();
+        saveData();
+    });
 
-    // Старт
+    document.getElementById('cancelEditBtn').addEventListener('click', cancelEditing);
+    document.getElementById('searchInput').addEventListener('input', filterTable);
+    document.getElementById('updateBtn').addEventListener('click', loadData);
+    document.addEventListener('keydown', handleKeyDown);
+
     loadData();
 </script>
 
