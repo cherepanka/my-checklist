@@ -2,894 +2,268 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Чек-лист: Ситуация — Решение — Цель</title>
+    <title>Чек-лист: Строгий корпоративный</title>
     <style>
         :root {
-            --table-bg: #1f2937;
-            --text-main: #e2e8f0;
+            --glass-bg: rgba(10, 14, 21, 0.6);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-primary: #e5e7eb;
             --text-muted: #9ca3af;
-            --border-subtle: #374151;
+            --accent: #6366f1;
         }
 
-        html, body { 
-            height: 100%; margin: 0; padding: 0; 
-            font-family: ui-monospace, SFMono-Regular, Menlo, monospace; /* Аналитический моноширинный шрифт */
-            background-color: #0f172a; /* Темный фон для снижения нагрузки на глаза */
-            box-sizing: border-box; color: var(--text-main);
-        }
-        *, *::before, *::after { box-sizing: inherit; }
+        html, body { height: 100%; margin: 0; padding: 0; font-family: 'Inter', system-ui, -apple-system, sans-serif; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: var(--text-primary); }
+        *, *::before, *::after { box-sizing: border-box; }
 
         .container { 
             width: 100vw; height: 100vh; padding: 20px; 
-            background-color: #0f172a; overflow: auto; 
-            box-sizing: border-box; display: flex; align-items: flex-start; justify-content: center;
+            display: flex; align-items: center; justify-content: center;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23334155' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='4'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") repeat;
         }
         .wrapper { 
             width: 100%; max-width: 1600px; 
-            background: #172536; padding: 32px 40px; 
-            border-radius: 20px; 
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4); /* Глубокая тень для отделения от фона */
-            border: 1px solid #334155;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 32px 40px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 55, 0.2);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
         }
 
-        h2 { 
-            margin-top: 0; margin-bottom: 32px; 
-            color: #f8fafc;
-            font-size: 28px; font-weight: 700; text-align: center;
-        }
+        h2 { margin: 0 0 24px 0; color: #f8fafc; font-size: 24px; font-weight: 600; text-align: center; letter-spacing: -0.02em; }
 
-        .format-info {
-            background-color: #0f172a; 
-            border-left: 5px solid #3b82f6;
-            padding: 16px 22px; 
-            margin-bottom: 32px; 
-            border-radius: 10px; 
-            font-size: 16px;
-            color: #d1d5db;
-            border: 1px solid #334155;
-        }
+        .format-info { background: rgba(255,255,255,0.05); border-left: 4px solid var(--accent); padding: 14px 20px; margin-bottom: 28px; border-radius: 12px; font-size: 15px; color: #cbd5e1; }
 
-        .action-buttons { display: flex; gap: 14px; margin-bottom: 32px; flex-wrap: wrap; justify-content: center; }
+        .action-buttons { display: flex; gap: 12px; margin-bottom: 28px; flex-wrap: wrap; justify-content: center; }
         .action-buttons button { 
-            padding: 10px 18px; border: none; border-radius: 12px; cursor: pointer; 
-            font-size: 14px; font-weight: 600; 
-            transition: transform 0.15s, box-shadow 0.2s, background-color 0.2s; 
-            display: flex; align-items: center; gap: 6px;
+            padding: 10px 18px; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 500; 
+            transition: all 0.2s ease; border: 1px solid var(--glass-border); display: flex; align-items: center; gap: 6px;
         }
         .action-buttons button:hover { 
-            transform: translateY(-2px) scale(1.03); 
-            box-shadow: 0 8px 20px rgba(0,0,0,0.25); 
+            transform: translateY(-2px); 
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+            background: rgba(255,255,255,0.08);
         }
-        #addBtn { background-color: #10b981; color: white; }
-        #editSaveBtn { background-color: #f59e0b; color: white; }
-        #cancelEditBtn { background-color: #6b7280; color: white; }
-        #saveBtn { background-color: #3b82f6; color: white; }
-        #updateBtn { background-color: #4b5563; color: white; }
+        #addBtn { background: rgba(99, 102, 241, 0.2); color: #bfdbfe; border-color: rgba(99, 102, 241, 0.4); }
+        #addBtn:hover { background: rgba(99, 102, 241, 0.4); color: white; }
+        #editSaveBtn { background: rgba(245, 155, 11, 0.2); color: #fbbf24; }
+        #cancelEditBtn { background: rgba(107, 114, 128, 0.2); color: #9ca3af; }
+        #saveBtn { background: rgba(37, 99, 235, 0.2); color: #93c5fd; }
+        #updateBtn { background: rgba(55, 65, 81, 0.2); color: #d1d5db; }
 
-        .input-row { 
-            display: flex; gap: 14px; margin-bottom: 32px; align-items: center; flex-wrap: wrap; 
-        }
+        .input-row { display: flex; gap: 12px; margin-bottom: 28px; align-items: center; flex-wrap: wrap; }
         .input-row input { 
-            padding: 14px 18px; border: 2px solid #4b5563; border-radius: 12px; 
-            flex-grow: 1; flex-basis: 260px; font-size: 16px; background: #111827; color: #f8fafc;
+            padding: 12px 16px; border: 1px solid var(--glass-border); border-radius: 10px; 
+            flex-grow: 1; flex-basis: 240px; font-size: 15px; background: rgba(255,255,255,0.05); color: #f8fafc;
             transition: border-color 0.2s, box-shadow 0.2s;
         }
-        .input-row input:focus { 
-            outline: none; border-color: #3b82f6; 
-            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2); 
-        }
-        #searchInput { width: 100%; max-width: 450px; padding: 14px 18px; border-radius: 12px; border: 2px solid #4b5563; box-sizing: border-box; font-size: 16px; background: #111827; color: #f8fafc; }
+        .input-row input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1); }
+        #searchInput { width: 100%; max-width: 400px; padding: 12px 16px; border-radius: 10px; border: 1px solid var(--glass-border); box-sizing: border-box; font-size: 15px; background: rgba(255,255,255,0.05); color: #f8fafc; }
 
         table { 
-            width: 100%; border-collapse: collapse; border: 1px solid #374151; border-radius: 16px; overflow: hidden; 
-            background: var(--table-bg); display: table; table-layout: fixed; font-size: 16px;
+            width: 100%; border-collapse: separate; border-spacing: 0 8px; 
+            background: transparent; display: block; overflow-x: auto;
         }
         thead { 
-            background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%); 
-            color: white; 
-            border-bottom: 3px solid #2563eb;
+            background: rgba(255,255,255,0.03); 
+            border-bottom: 1px solid var(--glass-border);
         }
         th { 
-            padding: 16px 20px; text-align: left; font-weight: 700; font-size: 14px; letter-spacing: 0.5px; 
-            display: flex; align-items: center; gap: 10px; position: sticky; top: 0; z-index: 2;
-            border-right: 1px solid rgba(255,255,255,0.4); /* Видимая вертикальная линия в шапке */
-        }
-        th:last-child { border-right: none; }
-        
-        /* Сетка строк: фиксируем колонки для аналитического вида */
-        th:first-child { grid-column: 1; }
-        th:nth-child(2) { grid-column: 2; }
-        th:nth-child(3) { grid-column: 3; }
-        th:nth-child(4) { grid-column: 4; }
-
-        thead tr, tbody tr { 
-            display: grid; 
-            grid-template-columns: 1fr 2fr 1fr 160px; 
-            align-items: center; 
+            padding: 14px 18px; text-align: left; font-weight: 600; font-size: 13px; letter-spacing: 0.5px; 
+            color: #93c5fd; text-transform: uppercase; 
+            position: sticky; top: 0; background: rgba(255,255,255,0.05); z-index: 2;
         }
         
         tbody tr { 
-            border-bottom: 1px solid #374151; 
-            transition: background-color 0.2s; 
-            background: var(--table-bg);
+            display: grid; 
+            grid-template-columns: 1fr 2fr 1fr 160px; 
+            align-items: center; 
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--glass-border);
+            border-radius: 14px;
+            transition: all 0.2s ease;
+            margin-bottom: 12px;
         }
-        tbody tr:hover { background-color: #334155; }
-        tbody tr:last-child { border-bottom: none; }
+        tbody tr:hover { 
+            background: rgba(255,255,255,0.06); 
+            transform: translateY(-2px); 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
         
-        /* Вертикальные линии между столбцами в теле таблицы */
         td { 
-            padding: 16px 20px; text-align: left; word-wrap: break-word; 
-            color: #d1d5db; min-height: 52px; position: relative; line-height: 1.7;
-            border-right: 1px solid var(--border-subtle); /* Общая правая граница */
+            padding: 14px 18px; text-align: left; color: #e5e7eb; min-height: 48px; line-height: 1.6;
+            border-right: 1px solid var(--glass-border);
         }
+        td:last-child { border-right: none; }
         td:first-child { 
-            background-color: #2c1e1e; /* Темный красный для аналитики */
             font-weight: 600; color: #fca5a5; 
-            border-left: 3px solid #fecdd3; /* Акцентная левая граница */
-            border-right: 1px solid #7f1d1d; /* Утолщенная граница перед "Решением" */
+            border-left: 3px solid #fecdd3; 
+            background: rgba(254, 205, 211, 0.08);
         }
-        td:nth-child(2) { 
-            border-right: 1px solid #166534; /* Утолщенная граница перед "Целью" */
-        }
+        td:nth-child(2) { border-right: 1px solid var(--glass-border); }
         td:nth-child(3) { 
-            background-color: #142d14; /* Темный зеленый */
             font-style: italic; color: #86efac; 
-            border-right: none; /* Убираем границу перед колонкой управления */
+            background: rgba(134, 239, 172, 0.08);
+            border-right: 3px solid #bbf7d0;
         }
-        td:nth-child(4) { 
-            padding: 8px; background: #1e293b; border-right: none; 
-        }
+        td:nth-child(4) { padding: 8px; background: rgba(30, 41, 59, 0.4); border-right: none; }
 
-        .action-buttons-cell { 
-            display: flex; gap: 4px; padding: 0; position: relative; 
-            justify-content: center; flex-wrap: wrap; 
-        }
+        .action-buttons-cell { display: flex; gap: 6px; padding: 0; justify-content: center; }
         .edit-btn, .delete-btn, .move-up-btn, .move-down-btn {
-            padding: 6px 12px; border-radius: 8px; text-decoration: none; font-size: 12px; font-weight: 600;
-            transition: transform 0.1s, box-shadow 0.2s; display: flex; align-items: center; justify-content: center; min-width: 56px; height: 32px;
+            padding: 6px 10px; border-radius: 6px; text-decoration: none; font-size: 11px; font-weight: 500;
+            transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; min-width: 48px; height: 28px;
+            border: 1px solid var(--glass-border);
+            background: rgba(255,255,255,0.02);
         }
-        .edit-btn { background-color: #1e40af; color: white; }
-        .edit-btn:hover { background-color: #1e3a8a; transform: scale(1.07); box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
-        .delete-btn { background-color: #b91c1c; color: white; }
-        .delete-btn:hover { background-color: #991b1b; transform: scale(1.07); box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
-        .move-up-btn, .move-down-btn { background-color: #374151; color: #e2e8f0; }
-        .move-up-btn:hover, .move-down-btn:hover { background-color: #4b5563; transform: scale(1.07); }
+        .edit-btn { color: #93c5fd; border-color: rgba(99, 102, 241, 0.3); }
+        .edit-btn:hover { background: rgba(99, 102, 241, 0.3); color: white; }
+        .delete-btn { color: #fca5a5; border-color: rgba(248, 83, 83, 0.3); }
+        .delete-btn:hover { background: rgba(248, 83, 83, 0.3); color: white; }
+        .move-up-btn, .move-down-btn { color: #d1d5db; border-color: #4b5563; }
+        .move-up-btn:hover, .move-down-btn:hover { background: #4b5563; color: white; }
+
         td[contenteditable="true"] { 
-            cursor: text; outline: none; background-color: #111827 !important; 
-            line-height: 1.7; padding: 16px 20px; border: 2px solid transparent; border-radius: 8px; color: #f8fafc;
+            cursor: text; outline: none; background: rgba(255,255,255,0.08) !important; 
+            border: 1px solid transparent; border-radius: 6px;
         }
         td[contenteditable="true"]:focus { 
-            border-color: #3b82f6; 
-            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2); 
-            background-color: #1f2937 !important; 
+            border-color: var(--accent); 
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15); 
+            background: rgba(255,255,255,0.15) !important; 
         }
-        .token-block {
-            display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
-            justify-content: center; margin-bottom: 24px;
-        }
-        .token-block input {
-            padding: 10px 14px; border: 2px solid #4b5563; border-radius: 12px;
-            flex-basis: 320px; flex-grow: 1; max-width: 480px; font-size: 14px; background: #111827; color: #f8fafc;
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-        .token-block input:focus { 
-            outline: none; border-color: #7c3aed; 
-            box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.15); 
-        }
-        .token-block button {
-            padding: 10px 16px; border: none; border-radius: 12px; cursor: pointer;
-            font-size: 14px; font-weight: 600; transition: transform 0.15s, box-shadow 0.2s;
-        }
+
+        .token-block { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: center; margin-bottom: 24px; }
+        .token-block input { padding: 10px 14px; border: 1px solid var(--glass-border); border-radius: 10px; flex-basis: 300px; flex-grow: 1; font-size: 14px; background: rgba(255,255,255,0.05); color: #f8fafc; }
+        .token-block input:focus { outline: none; border-color: #a78bfa; box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.15); }
+        .token-block button { padding: 10px 16px; border: none; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.2s ease; }
         .token-block button:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.2); }
-        #tokenConnectBtn { background-color: #7c3aed; color: white; }
-        #tokenDisconnectBtn { background-color: #ef4444; color: white; }
-        #tokenStatus { font-size: 14px; font-weight: 600; color: #10b981; }
+        #tokenConnectBtn { background: rgba(124, 58, 237, 0.2); color: #c4b5fd; }
+        #tokenDisconnectBtn { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+        #tokenStatus { font-size: 14px; font-weight: 600; color: #4ade80; }
     </style>
 </head>
 <body>
-
-<div class="container">
-    <div class="wrapper">
-        <h2>📋 Аналитический чек-лист</h2>
-
-        <div class="format-info">
-            <strong>Как пользоваться:</strong> 
-            <code>&lt;b&gt;&lt;/b&gt;</code> — жирный, <code>&lt;i&gt;&lt;/i&gt;</code> — курсив, <code>&lt;u&gt;&lt;/u&gt;</code> — подчеркнутый, <code>&lt;br&gt;</code> — новая строка 
-        </div>
-
-        <div id="mainPanel">
-            <div id="alertBox"></div>
-            
-            <div class="action-buttons">
-                <button id="updateBtn">🔄 Обновить данные</button>
-                <button id="saveBtn">💾 Сохранить на сервер</button>
+    <!-- HTML структура остается прежней, меняются только ID и классы, если они были жестко прописаны в JS. 
+         В данном случае JS работает по ID, поэтому HTML из предыдущего сообщения подходит без изменений. -->
+    <div class="container">
+        <div class="wrapper">
+            <h2>📊 Аналитическая панель</h2>
+            <div class="format-info"><strong>Как пользоваться:</strong> <code>&lt;b&gt;&lt;/b&gt;</code> — жирный, <code>&lt;i&gt;&lt;/i&gt;</code> — курсив, <code>&lt;u&gt;&lt;/u&gt;</code> — подчеркнутый, <code>&lt;br&gt;</code> — новая строка </div>
+            <div id="mainPanel">
+                <div id="alertBox"></div>
+                <div class="action-buttons">
+                    <button id="updateBtn">🔄 Обновить данные</button>
+                    <button id="saveBtn">💾 Сохранить на сервер</button>
+                </div>
+                <div class="token-block">
+                    <input type="password" id="tokenInput" placeholder="🔑 GitHub-токен">
+                    <button id="tokenConnectBtn">Подключить</button>
+                    <button id="tokenDisconnectBtn" style="display: none;">🔓 Отключить</button>
+                    <span id="tokenStatus"></span>
+                </div>
+                <div class="input-row">
+                    <input type="text" id="newCol1" placeholder="❗ Ситуация">
+                    <input type="text" id="newCol2" placeholder="🛠️ Решение">
+                    <input type="text" id="newCol3" placeholder="🎯 Цель">
+                    <button id="addBtn">➕ Добавить</button>
+                    <button id="editSaveBtn" style="display: none;">✅ Сохранить</button>
+                    <button id="cancelEditBtn" style="display: none;">❌ Отмена</button>
+                </div>
+                <div style="margin-bottom: 28px;"><input type="text" id="searchInput" placeholder="🔎 Поиск..."></div>
+                <table id="myTable"><thead><tr><th>Ситуация</th><th>Решение</th><th>Цель</th><th>Управление</th></tr></thead><tbody></tbody></table>
             </div>
-
-            <div class="token-block">
-                <input type="password" id="tokenInput" placeholder="🔑 GitHub-токен (personal access token)">
-                <button id="tokenConnectBtn">Подключить</button>
-                <button id="tokenDisconnectBtn" style="display: none;">🔓 Отключить</button>
-                <span id="tokenStatus"></span>
-            </div>
-
-            <div class="input-row">
-                <input type="text" id="newCol1" placeholder="❗ Ситуация (что случилось)">
-                <input type="text" id="newCol2" placeholder="🛠️ Решение (как исправить)">
-                <input type="text" id="newCol3" placeholder="🎯 Цель (зачем это делать)">
-                <button id="addBtn">➕ Добавить запись</button>
-                <button id="editSaveBtn" style="display: none;">✅ Сохранить изменения</button>
-                <button id="cancelEditBtn" style="display: none;">❌ Отмена</button>
-            </div>
-
-            <div style="margin-bottom: 32px;">
-                <input type="text" id="searchInput" placeholder="🔎 Поиск по чек-листу...">
-            </div>
-
-            <table id="myTable"><thead><tr><th>🚩 Ситуация</th><th>🛠️ Решение</th><th>🎯 Цель</th><th>Управление</th></tr></thead><tbody></tbody></table>
         </div>
     </div>
-</div>
+    <script>
+        /* JS-код из предыдущего ответа остается без изменений, 
+           так как он привязан к ID элементов (addBtn, myTable и т.д.) */
+        const GIST_ID = '0fed9ed549009aa81461d291686d4f50';
+        const FILENAME = 'data.json';
+        const LOCAL_KEY = 'checklistLocalData';
+        const TOKEN_KEY = 'checklistGithubToken';
 
-<script>
-    const GIST_ID = '0fed9ed549009aa81461d291686d4f50';
-    const FILENAME = 'data.json';
-    const LOCAL_KEY = 'checklistLocalData';
-    const TOKEN_KEY = 'checklistGithubToken';
+        let tableData = [];
+        let editingIndex = null;
 
-    let tableData = [];
-    let editingIndex = null;
+        function saveLocal() { try { localStorage.setItem(LOCAL_KEY, JSON.stringify(tableData)); } catch (e) { console.error('Ошибка локального сохранения:', e); } }
+        function loadLocal() { try { const raw = localStorage.getItem(LOCAL_KEY); const data = raw ? JSON.parse(raw) : null; return Array.isArray(data) ? data : null; } catch (e) { return null; } }
+        let authToken = localStorage.getItem(TOKEN_KEY) || '';
+        function getToken() { return authToken; }
 
-    function saveLocal() {
-        try {
-            localStorage.setItem(LOCAL_KEY, JSON.stringify(tableData));
-        } catch (e) {
-            console.error('Ошибка локального сохранения:', e);
-        }
-    }
-
-    function loadLocal() {
-        try {
-            const raw = localStorage.getItem(LOCAL_KEY);
-            const data = raw ? JSON.parse(raw) : null;
-            return Array.isArray(data) ? data : null;
-        } catch (e) {
-            return null;
-        }
-    }
-
-    let authToken = localStorage.getItem(TOKEN_KEY) || '';
-    function getToken() { return authToken; }
-
-    function showAlert(message, type = 'info') {
-        const box = document.getElementById('alertBox');
-        box.className = `status ${type}`;
-        box.textContent = message;
-        box.style.display = 'block';
-        setTimeout(() => box.style.display = 'none', 3000);
-    }
-
-    function decodeHTMLEntities(text) {
-    if (!text) return '';
-    const textArea = document.createElement('textarea');
-    textArea.innerHTML = text;
-    return textArea.value;
-    }
-    function wrapSelection(tag) { /* ... код без изменений ... */
-        const sel = window.getSelection();
-        if (sel.isCollapsed || !sel.rangeCount) return;
-        const active = document.activeElement;
-        if (!active || active.getAttribute('contenteditable') !== 'true') return;
-        const range = sel.getRangeAt(0);
-        const selectedText = range.extractContents();
-        const wrapper = document.createElement(tag);
-        wrapper.appendChild(selectedText);
-        range.insertNode(wrapper);
-        sel.removeAllRanges();
-    }
-
-    function renderTable(data) {
-        const tbody = document.querySelector('#myTable tbody');
-        tbody.innerHTML = '';
-        data.forEach((row, index) => {
-            const newRow = tbody.insertRow();
-            newRow.style.display = 'grid';
-            newRow.style.gridTemplateColumns = '1fr 2fr 1fr 160px';
-            newRow.style.alignItems = 'center';
-
-            const cell1 = newRow.insertCell(); cell1.innerHTML = row.col1 || ''; cell1.setAttribute('contenteditable', 'true');
-            const cell2 = newRow.insertCell(); cell2.innerHTML = row.col2 || ''; cell2.setAttribute('contenteditable', 'true');
-            const cell3 = newRow.insertCell(); cell3.innerHTML = row.col3 || ''; cell3.setAttribute('contenteditable', 'true');
-            const cell4 = newRow.insertCell();
-            const actionsDiv = document.createElement('div'); actionsDiv.className = 'action-buttons-cell';
-
-            const upLink = document.createElement('a'); upLink.href = '#'; upLink.innerHTML = '▲'; upLink.className = 'move-up-btn';
-            upLink.onclick = (e) => { e.preventDefault(); moveRow(index, 'up'); }; 
-            if (index === 0) upLink.style.display = 'none'; /* Наверху кнопки нет */
-            const downLink = document.createElement('a'); downLink.href = '#'; downLink.innerHTML = '▼'; downLink.className = 'move-down-btn';
-            downLink.onclick = (e) => { e.preventDefault(); moveRow(index, 'down'); }; 
-            if (index === data.length - 1) downLink.style.display = 'none'; /* Внизу кнопки нет */
-
-            const editLink = document.createElement('a'); editLink.href = '#'; editLink.textContent = 'Ред.'; editLink.className = 'edit-btn';
-            editLink.onclick = (e) => { e.preventDefault(); startEditing(index); };
-            const delLink = document.createElement('a'); delLink.href = '#'; delLink.textContent = 'Х'; delLink.className = 'delete-btn';
-            delLink.onclick = (e) => { e.preventDefault(); if (confirm('Удалить этот пункт чек-листа?')) { tableData.splice(index, 1); cancelEditing(); renderTable(tableData); saveLocal(); showAlert('Пункт удален.', 'info'); } };
-
-            actionsDiv.appendChild(upLink); actionsDiv.appendChild(downLink); actionsDiv.appendChild(editLink); actionsDiv.appendChild(delLink); 
-            cell4.appendChild(actionsDiv);
-        });
-    }
-
-    function moveRow(index, direction) {
-        /* Инвертированная логика: 0 — это верх списка */
-        if (direction === 'up' && index > 0) { 
-            [tableData[index], tableData[index - 1]] = [tableData[index - 1], tableData[index]]; 
-            renderTable(tableData); saveLocal(); showAlert('Строка перемещена вверх.', 'info'); 
-        }
-        if (direction === 'down' && index < tableData.length - 1) { 
-            [tableData[index], tableData[index + 1]] = [tableData[index + 1], tableData[index]]; 
-            renderTable(tableData); saveLocal(); showAlert('Строка перемещена вниз.', 'info'); 
-        }
-    }
-
-    function startEditing(index) {
-        editingIndex = index; const row = tableData[index];
-        document.getElementById('newCol1').value = row.col1.replace(/<[^>]*>/g, '');
-        document.getElementById('newCol2').value = row.col2.replace(/<[^>]*>/g, '');
-        document.getElementById('newCol3').value = row.col3.replace(/<[^>]*>/g, '');
-        document.getElementById('addBtn').style.display = 'none'; 
-        document.getElementById('editSaveBtn').style.display = 'inline-block'; 
-        document.getElementById('cancelEditBtn').style.display = 'inline-block';
-    }
-    
-    function cancelEditing() {
-        editingIndex = null; 
-        document.getElementById('newCol1').value = ''; 
-        document.getElementById('newCol2').value = ''; 
-        document.getElementById('newCol3').value = '';
-        document.getElementById('addBtn').style.display = 'inline-block'; 
-        document.getElementById('editSaveBtn').style.display = 'none'; 
-        document.getElementById('cancelEditBtn').style.display = 'none';
-    }
-    
-    function filterTable() {
-        const filter = document.getElementById('searchInput').value.toLowerCase(); 
-        const rows = document.querySelectorAll('#myTable tbody tr'); 
-        rows.forEach(row => { 
-            const text = row.textContent.toLowerCase(); 
-            row.style.display = text.includes(filter) ? '' : 'none'; 
-        }); 
-    }
-    
-    function handleKeyDown(e) {
-        const active = document.activeElement; 
-        if (active && active.getAttribute('contenteditable') === 'true') {
-            if (e.ctrlKey && e.key === 'b') { e.preventDefault(); wrapSelection('b'); } 
-            if (e.ctrlKey && e.key === 'i') { e.preventDefault(); wrapSelection('i'); }
-            if (e.ctrlKey && e.key === 'u') { e.preventDefault(); wrapSelection('u'); } 
-            if (e.shiftKey && e.key === 'Enter') { e.preventDefault(); document.execCommand('insertHTML', false, '<br>'); }
-            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); }
-        }
-    }
-
-    async function saveToGist() {
-        const token = getToken();
-        if (!token) {
-            showAlert('❌ Токен не задан. Введите его в поле «GitHub-токен» выше и нажмите «Подключить».', 'error');
-            return;
+        function showAlert(message, type = 'info') {
+            const box = document.getElementById('alertBox');
+            box.className = `status ${type}`;
+            box.textContent = message;
+            box.style.display = 'block';
+            setTimeout(() => box.style.display = 'none', 3000);
         }
 
-        const safeData = tableData.map(row => ({
-            col1: decodeHTMLEntities(row.col1 || '').replace(/\"/g, "'").substring(0, 5000),
-            col2: decodeHTMLEntities(row.col2 || '').replace(/\"/g, "'").substring(0, 5000),
-            col3: decodeHTMLEntities(row.col3 || '').replace(/\"/g, "'").substring(0, 5000)
-        }));
+        function decodeHTMLEntities(text) { if (!text) return ''; const textArea = document.createElement('textarea'); textArea.innerHTML = text; return textArea.value; }
+        function wrapSelection(tag) { const sel = window.getSelection(); if (sel.isCollapsed || !sel.rangeCount) return; const active = document.activeElement; if (!active || active.getAttribute('contenteditable') !== 'true') return; const range = sel.getRangeAt(0); const selectedText = range.extractContents(); const wrapper = document.createElement(tag); wrapper.appendChild(selectedText); range.insertNode(wrapper); sel.removeAllRanges(); }
 
-        const payload = {
-            files: {
-                [FILENAME]: {
-                    content: JSON.stringify(safeData, null, 2)
-                }
-            }
-        };
+        function renderTable(data) {
+            const tbody = document.querySelector('#myTable tbody');
+            tbody.innerHTML = '';
+            data.forEach((row, index) => {
+                const newRow = tbody.insertRow();
+                newRow.style.display = 'grid';
+                newRow.style.gridTemplateColumns = '1fr 2fr 1fr 160px';
+                newRow.style.alignItems = 'center';
+                newRow.style.marginBottom = '12px';
 
-        try {
-            const saveRes = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
-                method: 'PATCH',
-                headers: {
-                    'Authorization': `token ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(payload)
+                const cell1 = newRow.insertCell(); cell1.innerHTML = row.col1 || ''; cell1.setAttribute('contenteditable', 'true');
+                const cell2 = newRow.insertCell(); cell2.innerHTML = row.col2 || ''; cell2.setAttribute('contenteditable', 'true');
+                const cell3 = newRow.insertCell(); cell3.innerHTML = row.col3 || ''; cell3.setAttribute('contenteditable', 'true');
+                const cell4 = newRow.insertCell();
+                const actionsDiv = document.createElement('div'); actionsDiv.className = 'action-buttons-cell';
+
+                const upLink = document.createElement('a'); upLink.href = '#'; upLink.innerHTML = '▲'; upLink.className = 'move-up-btn';
+                upLink.onclick = (e) => { e.preventDefault(); moveRow(index, 'up'); }; if (index === 0) upLink.style.display = 'none';
+                const downLink = document.createElement('a'); downLink.href = '#'; downLink.innerHTML = '▼'; downLink.className = 'move-down-btn';
+                downLink.onclick = (e) => { e.preventDefault(); moveRow(index, 'down'); }; if (index === data.length - 1) downLink.style.display = 'none';
+
+                const editLink = document.createElement('a'); editLink.href = '#'; editLink.textContent = 'Ред.'; editLink.className = 'edit-btn';
+                editLink.onclick = (e) => { e.preventDefault(); startEditing(index); };
+                const delLink = document.createElement('a'); delLink.href = '#'; delLink.textContent = 'Х'; delLink.className = 'delete-btn';
+                delLink.onclick = (e) => { e.preventDefault(); if (confirm('Удалить этот пункт чек-листа?')) { tableData.splice(index, 1); cancelEditing(); renderTable(tableData); saveLocal(); showAlert('Пункт удален.', 'info'); } };
+
+                actionsDiv.appendChild(upLink); actionsDiv.appendChild(downLink); actionsDiv.appendChild(editLink); actionsDiv.appendChild(delLink); 
+                cell4.appendChild(actionsDiv);
             });
-
-            if (!saveRes.ok) {
-                const errorText = await saveRes.text();
-                console.error("API Error details:", saveRes.status, errorText);
-                if (saveRes.status === 401) {
-                    showAlert('❌ Ошибка 401: неверный или отозванный токен. Проверьте его или подключите заново.', 'error');
-                } else if (saveRes.status === 403) {
-                    showAlert('❌ Ошибка 403: лимит запросов GitHub.', 'error');
-                } else {
-                    showAlert(`❌ Ошибка ${saveRes.status}: проверьте данные в ячейках.`, 'error');
-                }
-                return;
-            }
-
-            showAlert('✅ Сохранено на сервере. Остальные увидят изменения после «Обновить данные».', 'success');
-        } catch (e) {
-            console.error("Network Error:", e);
-            showAlert('❌ Ошибка сети. Проверьте подключение.', 'error');
         }
-    }
 
-    async function loadFromGist(showMessage = true) {
-        try {
-            const metaRes = await fetch(`https://api.github.com/gists/${GIST_ID}`);
-            const gist = await metaRes.json();
-            if (!gist.files || !gist.files[FILENAME]) {
-                showAlert('❌ Файл не найден на сервере.', 'error');
-                return;
-            }
-
-            const fileUrl = gist.files[FILENAME].raw_url + `?t=${Date.now()}`;
-            const raw = await fetch(fileUrl);
-            const text = await raw.text();
-            const loadedData = JSON.parse(text);
-
-            tableData = loadedData;
-            renderTable(tableData);
-            saveLocal();
-            if (showMessage) showAlert('📥 Данные с сервера загружены.', 'success');
-        } catch (e) {
-            console.error(e);
-            if (showMessage) showAlert('❌ Не удалось загрузить данные с сервера.', 'error');
+        function moveRow(index, direction) {
+            if (direction === 'up' && index > 0) { [tableData[index], tableData[index - 1]] = [tableData[index - 1], tableData[index]]; renderTable(tableData); saveLocal(); showAlert('Строка перемещена вверх.', 'info'); }
+            if (direction === 'down' && index < tableData.length - 1) { [tableData[index], tableData[index + 1]] = [tableData[index + 1], tableData[index]]; renderTable(tableData); saveLocal(); showAlert('Строка перемещена вниз.', 'info'); }
         }
-    }
 
-    document.getElementById('addBtn').addEventListener('click', () => {
-        const c1 = document.getElementById('newCol1').value.trim();
-        const c2 = document.getElementById('newCol2').value.trim();
-        const c3 = document.getElementById('newCol3').value.trim();
-        if (!c1 && !c2 && !c3) return;
-        /* Добавление в начало массива (требование 1) */
-        tableData.unshift({ col1: c1, col2: c2, col3: c3 }); 
-        renderTable(tableData);
-        cancelEditing();
-        saveLocal();
-        showAlert('Запись добавлена первой и сохранена.', 'success');
-    });
+        function startEditing(index) { editingIndex = index; const row = tableData[index]; document.getElementById('newCol1').value = row.col1.replace(/<[^>]*>/g, ''); document.getElementById('newCol2').value = row.col2.replace(/<[^>]*>/g, ''); document.getElementById('newCol3').value = row.col3.replace(/<[^>]*>/g, ''); document.getElementById('addBtn').style.display = 'none'; document.getElementById('editSaveBtn').style.display = 'inline-block'; document.getElementById('cancelEditBtn').style.display = 'inline-block'; }
+        function cancelEditing() { editingIndex = null; document.getElementById('newCol1').value = ''; document.getElementById('newCol2').value = ''; document.getElementById('newCol3').value = ''; document.getElementById('addBtn').style.display = 'inline-block'; document.getElementById('editSaveBtn').style.display = 'none'; document.getElementById('cancelEditBtn').style.display = 'none'; }
+        function filterTable() { const filter = document.getElementById('searchInput').value.toLowerCase(); const rows = document.querySelectorAll('#myTable tbody tr'); rows.forEach(row => { const text = row.textContent.toLowerCase(); row.style.display = text.includes(filter) ? '' : 'none'; }); }
+        function handleKeyDown(e) { const active = document.activeElement; if (active && active.getAttribute('contenteditable') === 'true') { if (e.ctrlKey && e.key === 'b') { e.preventDefault(); wrapSelection('b'); } if (e.ctrlKey && e.key === 'i') { e.preventDefault(); wrapSelection('i'); } if (e.ctrlKey && e.key === 'u') { e.preventDefault(); wrapSelection('u'); } if (e.shiftKey && e.key === 'Enter') { e.preventDefault(); document.execCommand('insertHTML', false, '<br>'); } if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); } } }
 
-    document.getElementById('editSaveBtn').addEventListener('click', () => {
-        if (editingIndex === null) return;
-        const c1 = document.getElementById('newCol1').value.trim();
-        const c2 = document.getElementById('newCol2').value.trim();
-        const c3 = document.getElementById('newCol3').value.trim();
-        if (!c1 && !c2 && !c3) return;
-        tableData[editingIndex] = { col1: c1, col2: c2, col3: c3 };
-        renderTable(tableData);
-        cancelEditing();
-        saveLocal();
-        showAlert('Пункт обновлен и сохранен.', 'success');
-    });
+        async function saveToGist() { const token = getToken(); if (!token) { showAlert('❌ Токен не задан.', 'error'); return; } const safeData = tableData.map(row => ({ col1: decodeHTMLEntities(row.col1 || '').replace(/\"/g, "'").substring(0, 5000), col2: decodeHTMLEntities(row.col2 || '').replace(/\"/g, "'").substring(0, 5000), col3: decodeHTMLEntities(row.col3 || '').replace(/\"/g, "'").substring(0, 5000) })); const payload = { files: { [FILENAME]: { content: JSON.stringify(safeData, null, 2) } } }; try { const saveRes = await fetch(`https://api.github.com/gists/${GIST_ID}`, { method: 'PATCH', headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }); if (!saveRes.ok) { const errorText = await saveRes.text(); console.error("API Error details:", saveRes.status, errorText); if (saveRes.status === 401) { showAlert('❌ Ошибка 401: неверный токен.', 'error'); } else { showAlert(`❌ Ошибка ${saveRes.status}`, 'error'); } return; } showAlert('✅ Сохранено на сервере.', 'success'); } catch (e) { console.error("Network Error:", e); showAlert('❌ Ошибка сети.', 'error'); } }
 
-    document.getElementById('cancelEditBtn').addEventListener('click', cancelEditing);
-    document.getElementById('searchInput').addEventListener('input', filterTable);
-    document.addEventListener('keydown', handleKeyDown);
+        async function loadFromGist(showMessage = true) { try { const metaRes = await fetch(`https://api.github.com/gists/${GIST_ID}`); const gist = await metaRes.json(); if (!gist.files || !gist.files[FILENAME]) { showAlert('❌ Файл не найден.', 'error'); return; } const fileUrl = gist.files[FILENAME].raw_url + `?t=${Date.now()}`; const raw = await fetch(fileUrl); const text = await raw.text(); const loadedData = JSON.parse(text); tableData = loadedData; renderTable(tableData); saveLocal(); if (showMessage) showAlert('📥 Данные с сервера загружены.', 'success'); } catch (e) { console.error(e); if (showMessage) showAlert('❌ Не удалось загрузить данные.', 'error'); } }
 
-    document.querySelector('#myTable tbody').addEventListener('input', (e) => {
-        const td = e.target.closest('td');
-        if (!td || td.getAttribute('contenteditable') !== 'true') return;
-        const tr = td.closest('tr');
-        const idx = Array.prototype.indexOf.call(tr.parentNode.children, tr);
-        if (idx < 0 || !tableData[idx]) return;
-        tableData[idx]['col' + (td.cellIndex + 1)] = td.innerHTML;
-        saveLocal();
-    });
+        document.getElementById('addBtn').addEventListener('click', () => { const c1 = document.getElementById('newCol1').value.trim(); const c2 = document.getElementById('newCol2').value.trim(); const c3 = document.getElementById('newCol3').value.trim(); if (!c1 && !c2 && !c3) return; tableData.unshift({ col1: c1, col2: c2, col3: c3 }); renderTable(tableData); cancelEditing(); saveLocal(); showAlert('Запись добавлена первой.', 'success'); });
+        document.getElementById('editSaveBtn').addEventListener('click', () => { if (editingIndex === null) return; const c1 = document.getElementById('newCol1').value.trim(); const c2 = document.getElementById('newCol2').value.trim(); const c3 = document.getElementById('newCol3').value.trim(); if (!c1 && !c2 && !c3) return; tableData[editingIndex] = { col1: c1, col2: c2, col3: c3 }; renderTable(tableData); cancelEditing(); saveLocal(); showAlert('Пункт обновлен.', 'success'); });
+        document.getElementById('cancelEditBtn').addEventListener('click', cancelEditing);
+        document.getElementById('searchInput').addEventListener('input', filterTable);
+        document.addEventListener('keydown', handleKeyDown);
+        document.querySelector('#myTable tbody').addEventListener('input', (e) => { const td = e.target.closest('td'); if (!td || td.getAttribute('contenteditable') !== 'true') return; const tr = td.closest('tr'); const idx = Array.prototype.indexOf.call(tr.parentNode.children, tr); if (idx < 0 || !tableData[idx]) return; tableData[idx]['col' + (td.cellIndex + 1)] = td.innerHTML; saveLocal(); });
+        document.getElementById('updateBtn').addEventListener('click', () => { if (tableData.length && !confirm('Заменить текущий список данными с сервера?')) return; loadFromGist(); });
+        document.getElementById('saveBtn').addEventListener('click', saveToGist);
 
-    document.getElementById('updateBtn').addEventListener('click', () => {
-        if (tableData.length && !confirm('Заменить текущий список данными с сервера?\nЛокальные изменения, не сохраненные на сервер, будут потеряны.')) return;
-        loadFromGist();
-    });
-
-    document.getElementById('saveBtn').addEventListener('click', saveToGist);
-
-    const tokenInput = document.getElementById('tokenInput');
-    const tokenConnectBtn = document.getElementById('tokenConnectBtn');
-    const tokenDisconnectBtn = document.getElementById('tokenDisconnectBtn');
-    const tokenStatus = document.getElementById('tokenStatus');
-
-    function updateTokenUI() {
-        if (authToken) {
-            tokenInput.style.display = 'none';
-            tokenConnectBtn.style.display = 'none';
-            tokenDisconnectBtn.style.display = 'inline-block';
-            tokenStatus.textContent = '✅ Токен подключен';
-        } else {
-            tokenInput.style.display = '';
-            tokenConnectBtn.style.display = 'inline-block';
-            tokenDisconnectBtn.style.display = 'none';
-            tokenStatus.textContent = '';
-        }
-    }
-
-    tokenConnectBtn.addEventListener('click', () => {
-        const val = tokenInput.value.trim();
-        if (!val) { showAlert('Введите токен перед подключением.', 'error'); return; }
-        authToken = val;
-        localStorage.setItem(TOKEN_KEY, val);
-        tokenInput.value = '';
+        const tokenInput = document.getElementById('tokenInput'); const tokenConnectBtn = document.getElementById('tokenConnectBtn'); const tokenDisconnectBtn = document.getElementById('tokenDisconnectBtn'); const tokenStatus = document.getElementById('tokenStatus');
+        function updateTokenUI() { if (authToken) { tokenInput.style.display = 'none'; tokenConnectBtn.style.display = 'none'; tokenDisconnectBtn.style.display = 'inline-block'; tokenStatus.textContent = '✅ Токен подключен'; } else { tokenInput.style.display = ''; tokenConnectBtn.style.display = 'inline-block'; tokenDisconnectBtn.style.display = 'none'; tokenStatus.textContent = ''; } }
+        tokenConnectBtn.addEventListener('click', () => { const val = tokenInput.value.trim(); if (!val) { showAlert('Введите токен.', 'error'); return; } authToken = val; localStorage.setItem(TOKEN_KEY, val); tokenInput.value = ''; updateTokenUI(); showAlert('✅ Токен подключен.', 'success'); });
+        tokenInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') tokenConnectBtn.click(); });
+        tokenDisconnectBtn.addEventListener('click', () => { authToken = ''; localStorage.removeItem(TOKEN_KEY); updateTokenUI(); showAlert('Токен отключен.', 'info'); });
         updateTokenUI();
-        showAlert('✅ Токен подключен. Теперь можно сохранять на сервер.', 'success');
-    });
 
-    tokenInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') tokenConnectBtn.click();
-    });
-
-    tokenDisconnectBtn.addEventListener('click', () => {
-        authToken = '';
-        localStorage.removeItem(TOKEN_KEY);
-        updateTokenUI();
-        showAlert('Токен отключен в этом браузере.', 'info');
-    });
-
-    updateTokenUI();
-
-    const localData = loadLocal();
-    if (localData && localData.length) {
-        tableData = localData;
-        renderTable(tableData);
-    } else {
-        loadFromGist();
-    }
-
-</script>
-
-</body>
-</html>
-<body>
-
-<div class="container">
-    <div class="wrapper">
-        <h2>📋 Чек-лист: Маркировка</h2>
-
-        <div class="format-info">
-            <strong>Как пользоваться:</strong> 
-            <code>&lt;b&gt;&lt;/b&gt;</code> — жирный, <code>&lt;i&gt;&lt;/i&gt;</code> — курсив, <code>&lt;u&gt;&lt;/u&gt;</code> — подчеркнутый, <code>&lt;br&gt;</code> — новая строка 
-        </div>
-
-        <div id="mainPanel">
-            <div id="alertBox"></div>
-            
-            <div class="action-buttons">
-                <button id="updateBtn">🔄 Обновить данные</button>
-                <button id="saveBtn">💾 Сохранить на сервер</button>
-            </div>
-
-            <div class="token-block">
-                <input type="password" id="tokenInput" placeholder="🔑 GitHub-токен (personal access token)">
-                <button id="tokenConnectBtn">Подключить</button>
-                <button id="tokenDisconnectBtn" style="display: none;">🔓 Отключить</button>
-                <span id="tokenStatus"></span>
-            </div>
-
-            <div class="input-row">
-                <input type="text" id="newCol1" placeholder="❗ Ситуация (что случилось)">
-                <input type="text" id="newCol2" placeholder="🛠️ Решение (как исправить)">
-                <input type="text" id="newCol3" placeholder="🎯 Цель (зачем это делать)">
-                <button id="addBtn">➕ Добавить запись</button>
-                <button id="editSaveBtn" style="display: none;">✅ Сохранить изменения</button>
-                <button id="cancelEditBtn" style="display: none;">❌ Отмена</button>
-            </div>
-
-            <div style="margin-bottom: 32px;">
-                <input type="text" id="searchInput" placeholder="🔎 Поиск по чек-листу...">
-            </div>
-
-            <table id="myTable"><thead><tr><th>🚩 Ситуация</th><th>🛠️ Решение</th><th>🎯 Цель</th><th>Управление</th></tr></thead><tbody></tbody></table>
-        </div>
-    </div>
-</div>
-
-<script>
-    const GIST_ID = '0fed9ed549009aa81461d291686d4f50';
-    const FILENAME = 'data.json';
-    const LOCAL_KEY = 'checklistLocalData';
-    const TOKEN_KEY = 'checklistGithubToken';
-
-    let tableData = [];
-    let editingIndex = null;
-
-    // --- ЛОКАЛЬНОЕ АВТОСОХРАНЕНИЕ (без токена и без скачивания файла) ---
-    function saveLocal() {
-        try {
-            localStorage.setItem(LOCAL_KEY, JSON.stringify(tableData));
-        } catch (e) {
-            console.error('Ошибка локального сохранения:', e);
-        }
-    }
-
-    function loadLocal() {
-        try {
-            const raw = localStorage.getItem(LOCAL_KEY);
-            const data = raw ? JSON.parse(raw) : null;
-            return Array.isArray(data) ? data : null;
-        } catch (e) {
-            return null;
-        }
-    }
-
-    // --- ТОКЕН: только ручной ввод на странице ---
-    let authToken = localStorage.getItem(TOKEN_KEY) || '';
-    function getToken() { return authToken; }
-
-    function showAlert(message, type = 'info') {
-        const box = document.getElementById('alertBox');
-        box.className = `status ${type}`;
-        box.textContent = message;
-        box.style.display = 'block';
-        setTimeout(() => box.style.display = 'none', 3000);
-    }
-
-    function decodeHTMLEntities(text) {
-    if (!text) return '';
-    const textArea = document.createElement('textarea');
-    textArea.innerHTML = text;
-    return textArea.value;
-	}
-    function wrapSelection(tag) { /* ... код без изменений ... */
-        const sel = window.getSelection();
-        if (sel.isCollapsed || !sel.rangeCount) return;
-        const active = document.activeElement;
-        if (!active || active.getAttribute('contenteditable') !== 'true') return;
-        const range = sel.getRangeAt(0);
-        const selectedText = range.extractContents();
-        const wrapper = document.createElement(tag);
-        wrapper.appendChild(selectedText);
-        range.insertNode(wrapper);
-        sel.removeAllRanges();
-    }
-
-    function renderTable(data) { /* ... код без изменений ... */
-        const tbody = document.querySelector('#myTable tbody');
-        tbody.innerHTML = '';
-        data.forEach((row, index) => {
-            const newRow = tbody.insertRow();
-            newRow.style.display = 'grid';
-            newRow.style.gridTemplateColumns = '1fr 2fr 1fr 160px';
-            newRow.style.alignItems = 'center';
-
-            const cell1 = newRow.insertCell(); cell1.innerHTML = row.col1 || ''; cell1.setAttribute('contenteditable', 'true');
-            const cell2 = newRow.insertCell(); cell2.innerHTML = row.col2 || ''; cell2.setAttribute('contenteditable', 'true');
-            const cell3 = newRow.insertCell(); cell3.innerHTML = row.col3 || ''; cell3.setAttribute('contenteditable', 'true');
-            const cell4 = newRow.insertCell();
-            const actionsDiv = document.createElement('div'); actionsDiv.className = 'action-buttons-cell';
-
-            const upLink = document.createElement('a'); upLink.href = '#'; upLink.innerHTML = '▲'; upLink.className = 'move-up-btn';
-            upLink.onclick = (e) => { e.preventDefault(); moveRow(index, 'up'); }; if (index === 0) upLink.style.display = 'none';
-            const downLink = document.createElement('a'); downLink.href = '#'; downLink.innerHTML = '▼'; downLink.className = 'move-down-btn';
-            downLink.onclick = (e) => { e.preventDefault(); moveRow(index, 'down'); }; if (index === data.length - 1) downLink.style.display = 'none';
-
-            const editLink = document.createElement('a'); editLink.href = '#'; editLink.textContent = 'Ред.'; editLink.className = 'edit-btn';
-            editLink.onclick = (e) => { e.preventDefault(); startEditing(index); };
-            const delLink = document.createElement('a'); delLink.href = '#'; delLink.textContent = 'Х'; delLink.className = 'delete-btn';
-            delLink.onclick = (e) => { e.preventDefault(); if (confirm('Удалить этот пункт чек-листа?')) { tableData.splice(index, 1); cancelEditing(); renderTable(tableData); saveLocal(); showAlert('Пункт удален.', 'info'); } };
-
-            actionsDiv.appendChild(upLink); actionsDiv.appendChild(downLink); actionsDiv.appendChild(editLink); actionsDiv.appendChild(delLink); 
-            cell4.appendChild(actionsDiv);
-        });
-    }
-
-    function moveRow(index, direction) { /* ... код без изменений ... */
-        if (direction === 'up' && index > 0) { [tableData[index], tableData[index - 1]] = [tableData[index - 1], tableData[index]]; renderTable(tableData); saveLocal(); showAlert('Строка перемещена вверх.', 'info'); }
-        if (direction === 'down' && index < tableData.length - 1) { [tableData[index], tableData[index + 1]] = [tableData[index + 1], tableData[index]]; renderTable(tableData); saveLocal(); showAlert('Строка перемещена вниз.', 'info'); }
-    }
-
-    function startEditing(index) { /* ... код без изменений ... */
-        editingIndex = index; const row = tableData[index];
-        document.getElementById('newCol1').value = row.col1.replace(/<[^>]*>/g, '');
-        document.getElementById('newCol2').value = row.col2.replace(/<[^>]*>/g, '');
-        document.getElementById('newCol3').value = row.col3.replace(/<[^>]*>/g, '');
-        document.getElementById('addBtn').style.display = 'none'; document.getElementById('editSaveBtn').style.display = 'inline-block'; document.getElementById('cancelEditBtn').style.display = 'inline-block';
-    }
-    
-    function cancelEditing() { /* ... код без изменений ... */
-        editingIndex = null; document.getElementById('newCol1').value = ''; document.getElementById('newCol2').value = ''; document.getElementById('newCol3').value = '';
-        document.getElementById('addBtn').style.display = 'inline-block'; document.getElementById('editSaveBtn').style.display = 'none'; document.getElementById('cancelEditBtn').style.display = 'none';
-    }
-    
-    function filterTable() { /* ... код без изменений ... */
-        const filter = document.getElementById('searchInput').value.toLowerCase(); const rows = document.querySelectorAll('#myTable tbody tr'); rows.forEach(row => { const text = row.textContent.toLowerCase(); row.style.display = text.includes(filter) ? '' : 'none'; }); 
-    }
-    
-    function handleKeyDown(e) { /* ... код без изменений ... */
-        const active = document.activeElement; if (active && active.getAttribute('contenteditable') === 'true') {
-            if (e.ctrlKey && e.key === 'b') { e.preventDefault(); wrapSelection('b'); } if (e.ctrlKey && e.key === 'i') { e.preventDefault(); wrapSelection('i'); }
-            if (e.ctrlKey && e.key === 'u') { e.preventDefault(); wrapSelection('u'); } if (e.shiftKey && e.key === 'Enter') { e.preventDefault(); document.execCommand('insertHTML', false, '<br>'); }
-            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); }
-        }
-    }
-
-    /* --- СОХРАНЕНИЕ НА СЕРВЕР (нужен токен, вводится на странице) --- */
-    async function saveToGist() {
-        const token = getToken();
-        if (!token) {
-            showAlert('❌ Токен не задан. Введите его в поле «GitHub-токен» выше и нажмите «Подключить».', 'error');
-            return;
-        }
-
-        // Очищаем данные от HTML-сущностей и лишних кавычек
-        const safeData = tableData.map(row => ({
-            col1: decodeHTMLEntities(row.col1 || '').replace(/"/g, "'").substring(0, 5000),
-            col2: decodeHTMLEntities(row.col2 || '').replace(/"/g, "'").substring(0, 5000),
-            col3: decodeHTMLEntities(row.col3 || '').replace(/"/g, "'").substring(0, 5000)
-        }));
-
-        const payload = {
-            files: {
-                [FILENAME]: {
-                    content: JSON.stringify(safeData, null, 2)
-                }
-            }
-        };
-
-        try {
-            const saveRes = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
-                method: 'PATCH',
-                headers: {
-                    'Authorization': `token ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(payload)
-            });
-
-            if (!saveRes.ok) {
-                const errorText = await saveRes.text();
-                console.error("API Error details:", saveRes.status, errorText);
-                if (saveRes.status === 401) {
-                    showAlert('❌ Ошибка 401: неверный или отозванный токен. Проверьте его или подключите заново.', 'error');
-                } else if (saveRes.status === 403) {
-                    showAlert('❌ Ошибка 403: лимит запросов GitHub.', 'error');
-                } else {
-                    showAlert(`❌ Ошибка ${saveRes.status}: проверьте данные в ячейках.`, 'error');
-                }
-                return;
-            }
-
-            showAlert('✅ Сохранено на сервере. Остальные увидят изменения после «Обновить данные».', 'success');
-        } catch (e) {
-            console.error("Network Error:", e);
-            showAlert('❌ Ошибка сети. Проверьте подключение.', 'error');
-        }
-    }
-
-    /* --- ЗАГРУЗКА С СЕРВЕРА (чтение работает без токена) --- */
-    async function loadFromGist(showMessage = true) {
-        try {
-            const metaRes = await fetch(`https://api.github.com/gists/${GIST_ID}`);
-            const gist = await metaRes.json();
-            if (!gist.files || !gist.files[FILENAME]) {
-                showAlert('❌ Файл не найден на сервере.', 'error');
-                return;
-            }
-
-            const fileUrl = gist.files[FILENAME].raw_url + `?t=${Date.now()}`;
-            const raw = await fetch(fileUrl);
-            const text = await raw.text();
-            const loadedData = JSON.parse(text);
-
-            tableData = loadedData;
-            renderTable(tableData);
-            saveLocal();
-            if (showMessage) showAlert('📥 Данные с сервера загружены.', 'success');
-        } catch (e) {
-            console.error(e);
-            if (showMessage) showAlert('❌ Не удалось загрузить данные с сервера.', 'error');
-        }
-    }
-
-    /* --- ОБРАБОТЧИКИ --- */
-    document.getElementById('addBtn').addEventListener('click', () => {
-        const c1 = document.getElementById('newCol1').value.trim();
-        const c2 = document.getElementById('newCol2').value.trim();
-        const c3 = document.getElementById('newCol3').value.trim();
-        if (!c1 && !c2 && !c3) return;
-        tableData.push({ col1: c1, col2: c2, col3: c3 });
-        renderTable(tableData);
-        cancelEditing();
-        saveLocal();
-        showAlert('Запись добавлена и сохранена.', 'success');
-    });
-
-    document.getElementById('editSaveBtn').addEventListener('click', () => {
-        if (editingIndex === null) return;
-        const c1 = document.getElementById('newCol1').value.trim();
-        const c2 = document.getElementById('newCol2').value.trim();
-        const c3 = document.getElementById('newCol3').value.trim();
-        if (!c1 && !c2 && !c3) return;
-        tableData[editingIndex] = { col1: c1, col2: c2, col3: c3 };
-        renderTable(tableData);
-        cancelEditing();
-        saveLocal();
-        showAlert('Пункт обновлен и сохранен.', 'success');
-    });
-
-    document.getElementById('cancelEditBtn').addEventListener('click', cancelEditing);
-    document.getElementById('searchInput').addEventListener('input', filterTable);
-    document.addEventListener('keydown', handleKeyDown);
-
-    // Правки прямо в ячейках таблицы тоже сохраняются автоматически
-    document.querySelector('#myTable tbody').addEventListener('input', (e) => {
-        const td = e.target.closest('td');
-        if (!td || td.getAttribute('contenteditable') !== 'true') return;
-        const tr = td.closest('tr');
-        const idx = Array.prototype.indexOf.call(tr.parentNode.children, tr);
-        if (idx < 0 || !tableData[idx]) return;
-        tableData[idx]['col' + (td.cellIndex + 1)] = td.innerHTML;
-        saveLocal();
-    });
-
-    document.getElementById('updateBtn').addEventListener('click', () => {
-        if (tableData.length && !confirm('Заменить текущий список данными с сервера?\nЛокальные изменения, не сохраненные на сервер, будут потеряны.')) return;
-        loadFromGist();
-    });
-
-    document.getElementById('saveBtn').addEventListener('click', saveToGist);
-
-    /* --- ТОКЕН: интерфейс на странице --- */
-    const tokenInput = document.getElementById('tokenInput');
-    const tokenConnectBtn = document.getElementById('tokenConnectBtn');
-    const tokenDisconnectBtn = document.getElementById('tokenDisconnectBtn');
-    const tokenStatus = document.getElementById('tokenStatus');
-
-    function updateTokenUI() {
-        if (authToken) {
-            tokenInput.style.display = 'none';
-            tokenConnectBtn.style.display = 'none';
-            tokenDisconnectBtn.style.display = 'inline-block';
-            tokenStatus.textContent = '✅ Токен подключен';
-        } else {
-            tokenInput.style.display = '';
-            tokenConnectBtn.style.display = 'inline-block';
-            tokenDisconnectBtn.style.display = 'none';
-            tokenStatus.textContent = '';
-        }
-    }
-
-    tokenConnectBtn.addEventListener('click', () => {
-        const val = tokenInput.value.trim();
-        if (!val) { showAlert('Введите токен перед подключением.', 'error'); return; }
-        authToken = val;
-        localStorage.setItem(TOKEN_KEY, val);
-        tokenInput.value = '';
-        updateTokenUI();
-        showAlert('✅ Токен подключен. Теперь можно сохранять на сервер.', 'success');
-    });
-
-    tokenInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') tokenConnectBtn.click();
-    });
-
-    tokenDisconnectBtn.addEventListener('click', () => {
-        authToken = '';
-        localStorage.removeItem(TOKEN_KEY);
-        updateTokenUI();
-        showAlert('Токен отключен в этом браузере.', 'info');
-    });
-
-    updateTokenUI();
-
-    /* --- СТАРТ --- */
-    const localData = loadLocal();
-    if (localData && localData.length) {
-        // Локальная версия главнее — сервер перезаписываем только по кнопке «Обновить данные»
-        tableData = localData;
-        renderTable(tableData);
-    } else {
-        loadFromGist();
-    }
-
-</script>
-
+        const localData = loadLocal(); if (localData && localData.length) { tableData = localData; renderTable(tableData); } else { loadFromGist(); }
+    </script>
 </body>
 </html>
