@@ -1,0 +1,50 @@
+name: Save Checklist from Web
+
+on:
+  workflow_dispatch:
+    inputs:
+      json_data:
+        description: 'JSON payload'
+        required: true
+        type: string
+      secret_key:
+        description: 'Secret Key'
+        required: true
+        type: string
+
+jobs:
+  commit-data:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify Secret
+        env:
+          SECRET: ${{ secrets.WEBHOOK_SECRET }}
+        run: |
+          if [ "${{ inputs.secret_key }}" != "$SECRET" ]; then
+            echo "Authentication failed"
+            exit 1
+          fi
+
+      - name: Write data to file
+        env:
+          DATA: '${{ inputs.json_data }}'
+        run: |
+          echo "$DATA" > data.json
+
+      - name: Commit and Push
+        run: |
+          git config user.name "Auto-Saver"
+          git config user.email "action@github.com"
+          
+          git add data.json
+          
+          # Проверяем, есть ли изменения
+          if ! git diff --cached --exit-code; then
+            git commit -m "Update checklist from web interface"
+            git push
+          else
+            echo "No changes to commit."
+          fi
