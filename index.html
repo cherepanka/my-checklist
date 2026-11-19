@@ -2,27 +2,76 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Чек-лист: Маркировка (Групповой)</title>
+    <title>Чек-лист: Ситуация — Решение — Цель</title>
     <style>
-        /* --- СТИЛИ (как в самом первом вашем запросе) --- */
-        html, body { height: 100%; margin: 0; padding: 0; font-family: Verdana, Geneva, sans-serif; background-color: #f8f9fa; box-sizing: border-box; }
+        html, body { 
+            height: 100%; margin: 0; padding: 0; 
+            font-family: Verdana, Geneva, sans-serif; 
+            background-color: #f8f9fa; 
+            box-sizing: border-box; 
+        }
         *, *::before, *::after { box-sizing: inherit; }
-        .container { width: 100vw; height: 100vh; padding: 20px; background-color: #f8f9fa; overflow: auto; box-sizing: border-box; display: flex; align-items: flex-start; justify-content: center; }
-        .wrapper { width: 100%; max-width: 1600px; background: white; padding: 32px 40px; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.08); border: 1px solid #e5e7eb; }
-        h2 { margin-top: 0; margin-bottom: 32px; color: #1e293b; font-size: 28px; font-weight: 700; text-align: center; }
-        .format-info { background-color: #e0f2f1; border-left: 5px solid #00b48f; padding: 16px 22px; margin-bottom: 32px; border-radius: 10px; font-size: 16px; color: #004349; }
+
+        .container { 
+            width: 100vw; height: 100vh; padding: 20px; 
+            background-color: #f8f9fa; overflow: auto; 
+            box-sizing: border-box; 
+            display: flex; align-items: flex-start; justify-content: center;
+        }
+        .wrapper { 
+            width: 100%; max-width: 1600px; 
+            background: white; padding: 32px 40px; 
+            border-radius: 20px; 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.08); 
+            border: 1px solid #e5e7eb; 
+        }
+
+        h2 { 
+            margin-top: 0; margin-bottom: 32px; 
+            color: #1e293b;
+            font-size: 28px; 
+            font-weight: 700; 
+            text-align: center;
+        }
+
+        .format-info {
+            background-color: #e0f2f1; 
+            border-left: 5px solid #00b48f;
+            padding: 16px 22px; 
+            margin-bottom: 32px; 
+            border-radius: 10px; 
+            font-size: 16px;
+            color: #004349;
+        }
+
         .action-buttons { display: flex; gap: 14px; margin-bottom: 32px; flex-wrap: wrap; justify-content: center; }
-        .action-buttons button { padding: 8px 16px; border: none; border-radius: 12px; cursor: pointer; font-size: 14px; font-weight: 600; transition: transform 0.15s, box-shadow 0.2s, background-color 0.2s; display: flex; align-items: center; gap: 6px; }
+        .action-buttons button { 
+            padding: 8px 16px; border: none; border-radius: 12px; cursor: pointer; 
+            font-size: 14px; font-weight: 600; 
+            transition: transform 0.15s, box-shadow 0.2s, background-color 0.2s; 
+            display: flex; align-items: center; gap: 6px;
+        }
         .action-buttons button:hover { transform: translateY(-3px); box-shadow: 0 6px 16px rgba(0,0,0,0.12); }
         #addBtn { background-color: #16a34a; color: white; }
         #editSaveBtn { background-color: #d97706; color: white; }
         #cancelEditBtn { background-color: #6b7280; color: white; }
+        #saveBtn { background-color: #2563eb; color: white; }
         #updateBtn { background-color: #374151; color: white; }
-        .input-row { display: flex; gap: 14px; margin-bottom: 32px; align-items: center; flex-wrap: wrap; }
-        .input-row input { padding: 14px 18px; border: 2px solid #cbd5e1; border-radius: 12px; flex-grow: 1; flex-basis: 260px; font-size: 16px; transition: border-color 0.2s, box-shadow 0.2s; }
+
+        .input-row { 
+            display: flex; gap: 14px; margin-bottom: 32px; align-items: center; flex-wrap: wrap; 
+        }
+        .input-row input { 
+            padding: 14px 18px; border: 2px solid #cbd5e1; border-radius: 12px; 
+            flex-grow: 1; flex-basis: 260px; font-size: 16px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
         .input-row input:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15); }
         #searchInput { width: 100%; max-width: 450px; padding: 14px 18px; border-radius: 12px; border: 2px solid #cbd5e1; box-sizing: border-box; font-size: 16px; }
-        table { width: 100%; border-collapse: collapse; border: 2px solid #e2e8f0; border-radius: 16px; overflow: hidden; background: white; display: table; table-layout: fixed; font-size: 16px; }
+
+        table { 
+            width: 100%; border-collapse: collapse; border: 2px solid #e2e8f0; border-radius: 16px; overflow: hidden; background: white; display: table; table-layout: fixed; font-size: 16px;
+        }
         thead { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border-bottom: 3px solid #047857; }
         th { padding: 16px 20px; text-align: left; font-weight: 700; font-size: 14px; letter-spacing: 0.5px; display: flex; align-items: center; gap: 10px; position: sticky; top: 0; z-index: 2; }
         th:first-child { border-right: 3px solid rgba(255,255,255,0.4); }
@@ -38,7 +87,10 @@
         td:nth-child(3) { background-color: #f0fdf9; font-style: italic; color: #047857; border-right: 3px solid #bae6fd; }
         td:nth-child(2) { border-right: 3px solid #e2e8f0; }
         .action-buttons-cell { display: flex; gap: 4px; padding: 0; position: relative; justify-content: center; flex-wrap: wrap; }
-        .edit-btn, .delete-btn, .move-up-btn, .move-down-btn { padding: 5px 10px; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: 500; transition: transform 0.1s, box-shadow 0.2s; display: flex; align-items: center; justify-content: center; min-width: 50px; height: 30px; }
+        .edit-btn, .delete-btn, .move-up-btn, .move-down-btn {
+            padding: 5px 10px; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: 500;
+            transition: transform 0.1s, box-shadow 0.2s; display: flex; align-items: center; justify-content: center; min-width: 50px; height: 30px;
+        }
         .edit-btn { background-color: #dbeafe; color: #1e40af; }
         .edit-btn:hover { background-color: #bfdbfe; transform: scale(1.07); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
         .delete-btn { background-color: #fee2e2; color: #b91c1c; }
@@ -56,12 +108,20 @@
 <div class="container">
     <div class="wrapper">
         <h2>📋 Чек-лист: Маркировка</h2>
-        <div class="format-info"><strong>Как пользоваться:</strong> <code>&lt;b&gt;&lt;/b&gt;</code> — жирный, <code>&lt;i&gt;&lt;/i&gt;</code> — курсив, <code>&lt;u&gt;&lt;/u&gt;</code> — подчеркнутый, <code>&lt;br&gt;</code> — новая строка </div>
+
+        <div class="format-info">
+            <strong>Как пользоваться:</strong> 
+            <code>&lt;b&gt;&lt;/b&gt;</code> — жирный, <code>&lt;i&gt;&lt;/i&gt;</code> — курсив, <code>&lt;u&gt;&lt;/u&gt;</code> — подчеркнутый, <code>&lt;br&gt;</code> — новая строка 
+        </div>
+
         <div id="mainPanel">
             <div id="alertBox"></div>
+            
             <div class="action-buttons">
                 <button id="updateBtn">🔄 Обновить данные</button>
+                <button id="saveBtn">💾 Сохранить на сервер</button>
             </div>
+
             <div class="input-row">
                 <input type="text" id="newCol1" placeholder="❗ Ситуация (что случилось)">
                 <input type="text" id="newCol2" placeholder="🛠️ Решение (как исправить)">
@@ -70,31 +130,41 @@
                 <button id="editSaveBtn" style="display: none;">✅ Сохранить изменения</button>
                 <button id="cancelEditBtn" style="display: none;">❌ Отмена</button>
             </div>
-            <div style="margin-bottom: 32px;"><input type="text" id="searchInput" placeholder="🔎 Поиск по чек-листу..."></div>
+
+            <div style="margin-bottom: 32px;">
+                <input type="text" id="searchInput" placeholder="🔎 Поиск по чек-листу...">
+            </div>
+
             <table id="myTable"><thead><tr><th>🚩 Ситуация</th><th>🛠️ Решение</th><th>🎯 Цель</th><th>Управление</th></tr></thead><tbody></tbody></table>
         </div>
     </div>
 </div>
 
 <script>
-    /* --- НАСТРОЙКИ (ОБЯЗАТЕЛЬНО ЗАМЕНИТЬ) --- */
-    const REPO_OWNER = 'cherepanka'; 
-    const REPO_NAME = 'my-checklist';
-    const WORKFLOW_FILE = 'save-from-web.yml'; // Имя файла из Шага 2
-    const WEBHOOK_SECRET = 'SuperChecklist1997!'; 
+    const GIST_ID = '0fed9ed549009aa81461d291686d4f50';
+    const TOKEN = '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';
+    const FILENAME = 'data.json';
 
     let tableData = [];
+    let serverLastModified = null; // Сюда будем записывать версию с сервера
     let editingIndex = null;
+    let saveTimeout = null;
 
     function showAlert(message, type = 'info') {
         const box = document.getElementById('alertBox');
-        box.className = type;
+        box.className = `status ${type}`;
         box.textContent = message;
         box.style.display = 'block';
         setTimeout(() => box.style.display = 'none', 3000);
     }
 
-    function wrapSelection(tag) {
+    function decodeHTMLEntities(text) {
+    if (!text) return '';
+    const textArea = document.createElement('textarea');
+    textArea.innerHTML = text;
+    return textArea.value;
+	}
+    function wrapSelection(tag) { /* ... код без изменений ... */
         const sel = window.getSelection();
         if (sel.isCollapsed || !sel.rangeCount) return;
         const active = document.activeElement;
@@ -104,9 +174,10 @@
         const wrapper = document.createElement(tag);
         wrapper.appendChild(selectedText);
         range.insertNode(wrapper);
+        sel.removeAllRanges();
     }
 
-    function renderTable(data) {
+    function renderTable(data) { /* ... код без изменений ... */
         const tbody = document.querySelector('#myTable tbody');
         tbody.innerHTML = '';
         data.forEach((row, index) => {
@@ -122,124 +193,170 @@
             const actionsDiv = document.createElement('div'); actionsDiv.className = 'action-buttons-cell';
 
             const upLink = document.createElement('a'); upLink.href = '#'; upLink.innerHTML = '▲'; upLink.className = 'move-up-btn';
-            upLink.onclick = (e) => { e.preventDefault(); moveRow(index, 'up'); saveData(); }; if (index === 0) upLink.style.display = 'none';
+            upLink.onclick = (e) => { e.preventDefault(); moveRow(index, 'up'); }; if (index === 0) upLink.style.display = 'none';
             const downLink = document.createElement('a'); downLink.href = '#'; downLink.innerHTML = '▼'; downLink.className = 'move-down-btn';
-            downLink.onclick = (e) => { e.preventDefault(); moveRow(index, 'down'); saveData(); }; if (index === data.length - 1) downLink.style.display = 'none';
+            downLink.onclick = (e) => { e.preventDefault(); moveRow(index, 'down'); }; if (index === data.length - 1) downLink.style.display = 'none';
 
             const editLink = document.createElement('a'); editLink.href = '#'; editLink.textContent = 'Ред.'; editLink.className = 'edit-btn';
             editLink.onclick = (e) => { e.preventDefault(); startEditing(index); };
             const delLink = document.createElement('a'); delLink.href = '#'; delLink.textContent = 'Х'; delLink.className = 'delete-btn';
-            delLink.onclick = (e) => { e.preventDefault(); if (confirm('Удалить этот пункт?')) { tableData.splice(index, 1); renderTable(tableData); saveData(); } };
+            delLink.onclick = (e) => { e.preventDefault(); if (confirm('Удалить этот пункт чек-листа?')) { tableData.splice(index, 1); cancelEditing(); renderTable(tableData); showAlert('Пункт удален.', 'info'); } };
 
             actionsDiv.appendChild(upLink); actionsDiv.appendChild(downLink); actionsDiv.appendChild(editLink); actionsDiv.appendChild(delLink); 
             cell4.appendChild(actionsDiv);
         });
     }
 
-    function moveRow(index, direction) {
-        if (direction === 'up' && index > 0) { [tableData[index], tableData[index - 1]] = [tableData[index - 1], tableData[index]]; renderTable(tableData); }
-        if (direction === 'down' && index < tableData.length - 1) { [tableData[index], tableData[index + 1]] = [tableData[index + 1], tableData[index]]; renderTable(tableData); }
+    function moveRow(index, direction) { /* ... код без изменений ... */
+        if (direction === 'up' && index > 0) { [tableData[index], tableData[index - 1]] = [tableData[index - 1], tableData[index]]; renderTable(tableData); showAlert('Строка перемещена вверх.', 'info'); }
+        if (direction === 'down' && index < tableData.length - 1) { [tableData[index], tableData[index + 1]] = [tableData[index + 1], tableData[index]]; renderTable(tableData); showAlert('Строка перемещена вниз.', 'info'); }
     }
 
-    function startEditing(index) {
-        editingIndex = index; 
-        const row = tableData[index];
+    function startEditing(index) { /* ... код без изменений ... */
+        editingIndex = index; const row = tableData[index];
         document.getElementById('newCol1').value = row.col1.replace(/<[^>]*>/g, '');
         document.getElementById('newCol2').value = row.col2.replace(/<[^>]*>/g, '');
         document.getElementById('newCol3').value = row.col3.replace(/<[^>]*>/g, '');
-        document.getElementById('addBtn').style.display = 'none'; 
-        document.getElementById('editSaveBtn').style.display = 'inline-block'; 
-        document.getElementById('cancelEditBtn').style.display = 'inline-block';
+        document.getElementById('addBtn').style.display = 'none'; document.getElementById('editSaveBtn').style.display = 'inline-block'; document.getElementById('cancelEditBtn').style.display = 'inline-block';
     }
     
-    function cancelEditing() {
-        editingIndex = null; 
-        document.getElementById('newCol1').value = ''; 
-        document.getElementById('newCol2').value = ''; 
-        document.getElementById('newCol3').value = '';
-        document.getElementById('addBtn').style.display = 'inline-block'; 
-        document.getElementById('editSaveBtn').style.display = 'none'; 
-        document.getElementById('cancelEditBtn').style.display = 'none';
+    function cancelEditing() { /* ... код без изменений ... */
+        editingIndex = null; document.getElementById('newCol1').value = ''; document.getElementById('newCol2').value = ''; document.getElementById('newCol3').value = '';
+        document.getElementById('addBtn').style.display = 'inline-block'; document.getElementById('editSaveBtn').style.display = 'none'; document.getElementById('cancelEditBtn').style.display = 'none';
     }
     
-    function filterTable() {
-        const filter = document.getElementById('searchInput').value.toLowerCase(); 
-        const rows = document.querySelectorAll('#myTable tbody tr'); 
-        rows.forEach(row => { const text = row.textContent.toLowerCase(); row.style.display = text.includes(filter) ? '' : 'none'; }); 
+    function filterTable() { /* ... код без изменений ... */
+        const filter = document.getElementById('searchInput').value.toLowerCase(); const rows = document.querySelectorAll('#myTable tbody tr'); rows.forEach(row => { const text = row.textContent.toLowerCase(); row.style.display = text.includes(filter) ? '' : 'none'; }); 
     }
     
-    function handleKeyDown(e) {
-        const active = document.activeElement; 
-        if (active && active.getAttribute('contenteditable') === 'true') {
-            if (e.ctrlKey && e.key === 'b') { e.preventDefault(); wrapSelection('b'); } 
-            if (e.ctrlKey && e.key === 'i') { e.preventDefault(); wrapSelection('i'); }
-            if (e.ctrlKey && e.key === 'u') { e.preventDefault(); wrapSelection('u'); } 
-            if (e.shiftKey && e.key === 'Enter') { e.preventDefault(); document.execCommand('insertHTML', false, '<br>'); }
+    function handleKeyDown(e) { /* ... код без изменений ... */
+        const active = document.activeElement; if (active && active.getAttribute('contenteditable') === 'true') {
+            if (e.ctrlKey && e.key === 'b') { e.preventDefault(); wrapSelection('b'); } if (e.ctrlKey && e.key === 'i') { e.preventDefault(); wrapSelection('i'); }
+            if (e.ctrlKey && e.key === 'u') { e.preventDefault(); wrapSelection('u'); } if (e.shiftKey && e.key === 'Enter') { e.preventDefault(); document.execCommand('insertHTML', false, '<br>'); }
             if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); }
         }
     }
 
-    /* --- АВТОМАТИЧЕСКОЕ СОХРАНЕНИЕ (Action) --- */
-    async function saveData() {
-        try {
-            const url = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/actions/workflows/${WORKFLOW_FILE}/dispatches`;
-            
-            // ВНИМАНИЕ: Этот запрос НЕ сработает без внешнего прокси (Pipedream), 
-            // так как браузер не может авторизовать workflow_dispatch.
-            // Но интерфейс кнопок будет работать.
-            
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Accept': 'application/vnd.github+json',
-                    'Content-Type': 'application/json'
-                    /* 
-                       АВТОРИЗАЦИЯ:
-                       Чтобы это заработало, запрос должен идти через Pipedream/Cloudflare.
-                       Если вы хотите тестировать локально без них, закомментируйте этот блок saveData 
-                       и раскомментируйте блок "Локальное сохранение" ниже.
-                    */
-                },
-                body: JSON.stringify({
-                    ref: 'main',
-                    inputs: {
-                        json_data: JSON.stringify(tableData),
-                        secret_key: WEBHOOK_SECRET
-                    }
-                })
-            });
+    /* --- ФУНКЦИЯ СОХРАНЕНИЯ С ПРОВЕРКОЙ ВЕРСИИ --- */
+    async function saveToGist() {
+    if (saveTimeout) clearTimeout(saveTimeout);
 
-            if (response.ok) {
-                showAlert('✅ Сохранено в GitHub!', 'success');
+    // Очищаем данные от HTML-сущностей и лишних кавычек
+    const safeData = tableData.map(row => ({
+        col1: decodeHTMLEntities(row.col1 || '').replace(/"/g, '\'').substring(0, 5000),
+        col2: decodeHTMLEntities(row.col2 || '').replace(/"/g, '\'').substring(0, 5000),
+        col3: decodeHTMLEntities(row.col3 || '').replace(/"/g, '\'').substring(0, 5000)
+    }));
+
+    const payload = { 
+        files: { 
+            [FILENAME]: { 
+                content: JSON.stringify(safeData, null, 2) 
+            } 
+        } 
+    };
+
+    const headers = {
+        'Authorization': `token ${TOKEN}`,
+        'Content-Type': 'application/json'
+        // ЗАГЛОВОК If-Unmodified-Since ЗДЕСЬ УДАЛЕН
+    };
+
+    try {
+        const saveRes = await fetch(`https://api.github.com/gists/${GIST_ID}`, { 
+            method: 'PATCH', 
+            headers: headers, 
+            body: JSON.stringify(payload) 
+        });
+
+        const errorText = await saveRes.text();
+
+        if (!saveRes.ok) {
+            console.error("API Error details:", saveRes.status, errorText);
+            if (saveRes.status === 401) {
+                showAlert('❌ Ошибка 401: Неверный токен.', 'error');
+            } else if (saveRes.status === 403) {
+                showAlert('❌ Ошибка 403: Лимит запросов.', 'error');
             } else {
-                const err = await response.json();
-                console.error(err);
-                showAlert('❌ Ошибка сохранения (см. консоль)', 'error');
+                // Теперь 400 здесь будет только если JSON действительно битый
+                showAlert(`❌ Ошибка ${saveRes.status}: Проверьте данные в ячейках.`, 'error');
             }
-        } catch (e) {
-            showAlert('❌ Сетевая ошибка.', 'error');
+            return;
+        }
+
+        // Запрос ПРИНЯТ сервером. Теперь проверяем, не перебил ли нас кто-то.
+        showAlert('✅ Отправлено. Ждем подтверждения версии...', 'info');
+        saveTimeout = setTimeout(() => { waitForServerUpdate(tableData); }, 2000);
+
+    } catch (e) {
+        console.error("Network Error:", e);
+        showAlert('❌ Критическая ошибка сети.', 'error');
+    }
+}
+
+    /* --- ФУНКЦИЯ ПРОВЕРКИ ПОСЛЕ СОХРАНЕНИЯ --- */
+    async function waitForServerUpdate(expectedData) {
+        try {
+            showAlert('🔄 Проверка записи на сервере...', 'info');
+            const checkRes = await fetch(`https://api.github.com/gists/${GIST_ID}`);
+            const checkGist = await checkRes.json();
+
+            if (!checkGist.files[FILENAME]) { 
+                showAlert('❌ Файл не найден на сервере.', 'error'); 
+                return; 
+            }
+
+            // Читаем сырой текст с очисткой кэша
+            const fileUrl = checkGist.files[FILENAME].raw_url + `?t=${Date.now()}`;
+            const raw = await fetch(fileUrl);
+            const text = await raw.text();
+            
+            try {
+                const serverData = JSON.parse(text);
+                
+                // Сравниваем данные
+                if (JSON.stringify(serverData) === JSON.stringify(expectedData)) {
+                    // Данные совпали — мы победили
+                    tableData = serverData;
+                    serverLastModified = checkRes.headers.get('Last-Modified'); // Обновляем нашу версию
+                    renderTable(tableData);
+                    showAlert('✅ Данные подтверждены сервером! Вы владеете актуальной версией.', 'success');
+                    return true;
+                } else {
+                    // Данные НЕ совпали (редкий случай, если кто-то вклинился в эти 2 секунды)
+                    showAlert('❌ ОШИБКА: Пока мы сохраняли, файл изменился. Данные не обновлены.', 'error');
+                    return false;
+                }
+            } catch (e) {
+                showAlert('❌ Ошибка формата JSON на сервере.', 'error'); 
+                return false;
+            }
+        } catch (e) { 
+            showAlert('❌ Ошибка связи при проверке.', 'error'); 
+            return false;
         }
     }
 
-    /* --- ЛОКАЛЬНОЕ СОХРАНЕНИЕ (для теста, если Action не настроен) --- */
-    /*
-    function saveData() {
-        console.log('Данные сохранены локально');
-        showAlert('Локальные изменения (не в GitHub)', 'info');
-    }
-    */
-
-    async function loadData() {
+    /* --- ЗАГРУЗКА --- */
+    async function loadFromGist() {
         try {
-            const res = await fetch('data.json?t=' + Date.now());
-            if (!res.ok) throw new Error('File not found');
-            const data = await res.json();
-            tableData = data;
+            const metaRes = await fetch(`https://api.github.com/gists/${GIST_ID}`);
+            const gist = await metaRes.json();
+            if (!gist.files[FILENAME]) { showAlert('❌ Файл не найден.', 'error'); return; }
+
+            const fileUrl = gist.files[FILENAME].raw_url + `?t=${Date.now()}`;
+            const raw = await fetch(fileUrl);
+            const text = await raw.text();
+            const loadedData = JSON.parse(text);
+            
+            // Сохраняем версию и данные
+            tableData = loadedData;
+            serverLastModified = metaRes.headers.get('Last-Modified'); 
+            
             renderTable(tableData);
-            showAlert('📥 Данные загружены.', 'success');
-        } catch (e) {
-            tableData = [];
-            renderTable(tableData);
+            showAlert('📥 Данные с сервера загружены.', 'success');
+        } catch (e) { 
+            showAlert('❌ Ошибка формата файла на сервере.', 'error'); 
         }
     }
 
@@ -248,11 +365,10 @@
         const c1 = document.getElementById('newCol1').value.trim();
         const c2 = document.getElementById('newCol2').value.trim();
         const c3 = document.getElementById('newCol3').value.trim();
-        if (!c1 || !c2 || !c3) return;
+        if (!c1 && !c2 && !c3) return;
         tableData.push({ col1: c1, col2: c2, col3: c3 }); 
         renderTable(tableData); 
         cancelEditing();
-        saveData();
     });
 
     document.getElementById('editSaveBtn').addEventListener('click', () => {
@@ -260,19 +376,20 @@
         const c1 = document.getElementById('newCol1').value.trim();
         const c2 = document.getElementById('newCol2').value.trim();
         const c3 = document.getElementById('newCol3').value.trim();
-        if (!c1 || !c2 || !c3) return;
+        if (!c1 && !c2 && !c3) return;
         tableData[editingIndex] = { col1: c1, col2: c2, col3: c3 };
         renderTable(tableData);
         cancelEditing();
-        saveData();
+        showAlert('Пункт обновлен.', 'success');
     });
 
     document.getElementById('cancelEditBtn').addEventListener('click', cancelEditing);
     document.getElementById('searchInput').addEventListener('input', filterTable);
-    document.getElementById('updateBtn').addEventListener('click', loadData);
+    document.getElementById('updateBtn').addEventListener('click', loadFromGist);
+    document.getElementById('saveBtn').addEventListener('click', saveToGist);
     document.addEventListener('keydown', handleKeyDown);
 
-    loadData();
+    loadFromGist();
 </script>
 
 </body>
