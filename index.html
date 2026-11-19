@@ -23,12 +23,12 @@
         .input-row input:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15); background-color: #f8fafc; }
         #searchInput { width: 100%; max-width: 450px; padding: 14px 18px; border-radius: 12px; border: 2px solid #cbd5e1; box-sizing: border-box; font-size: 16px; }
         
-        table { width: 100%; border-collapse: collapse; border: 1px solid #f1f5f9; border-radius: 16px; overflow: hidden; background: white; font-size: 16px; table-layout: fixed; }
-        thead { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; }
-        th { padding: 16px 20px; text-align: left; font-weight: 700; font-size: 14px; letter-spacing: 0.5px; position: sticky; top: 0; z-index: 2; border-bottom: 1px solid #f1f5f9; border-right: 1px solid #f1f5f9; overflow: hidden; text-overflow: ellipsis; }
-        th:first-child { width: 1fr; }
+        table { width: 100%; border-collapse: collapse; border: 1px solid #e5e7eb; border-radius: 16px; overflow: hidden; background: white; font-size: 16px; table-layout: fixed; }
+        thead { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border-bottom: 3px solid #047857; }
+        th { padding: 16px 20px; text-align: left; font-weight: 700; font-size: 14px; letter-spacing: 0.5px; position: sticky; top: 0; z-index: 2; border-right: 1px solid rgba(255,255,255,0.4); }
+        th:first-child { width: 1fr; border-right: 3px solid #fecdd3; }
         th:nth-child(2) { width: 2fr; }
-        th:nth-child(3) { width: 1fr; }
+        th:nth-child(3) { width: 1fr; border-right: 3px solid #bae6fd; }
         th:last-child { width: 80px; border-right: none; text-align: center; }
         
         tbody tr { display: grid; grid-template-columns: 1fr 2fr 1fr 160px; align-items: center; border-bottom: 1px solid #f1f5f9; transition: background-color 0.2s; }
@@ -37,9 +37,10 @@
         
         td { padding: 14px 18px; text-align: left; word-wrap: break-word; color: #475569; min-height: 52px; position: relative; line-height: 1.6; border-right: 1px solid #f1f5f9; }
         td:last-child { border-right: none; text-align: center; padding: 8px; }
-        td:first-child { background-color: #fef2f2; font-weight: 700; color: #991b1b; border-right: 1px solid #fed7d7; }
+        td:first-child { background-color: #fef2f2; font-weight: 700; color: #991b1b; border-right: 3px solid #fed7d7; }
         td:nth-child(2) { border-right: 1px solid #f1f5f9; }
-        td:nth-child(3) { background-color: #f0fdf9; font-style: italic; color: #047857; }
+        td:nth-child(3) { background-color: #f0fdf9; font-style: italic; color: #047857; border-right: 3px solid #bae6fd; }
+        td:nth-child(4) { padding: 8px; background: #f8fafc; border-right: none; }
 
         .action-buttons-cell { display: flex; gap: 4px; padding: 0; justify-content: center; flex-wrap: wrap; }
         .edit-btn, .delete-btn, .move-up-btn, .move-down-btn { padding: 5px 10px; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: 500; transition: transform 0.1s, box-shadow 0.2s; display: flex; align-items: center; justify-content: center; min-width: 50px; height: 30px; }
@@ -54,15 +55,6 @@
         
         td[contenteditable="true"] { cursor: text; outline: none; background-color: white !important; line-height: 1.6; padding: 14px 18px; border: 2px solid transparent; border-radius: 8px; }
         td[contenteditable="true"]:focus { border-color: #2563eb; box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15); background-color: #f8fafc !important; }
-        
-        .token-block { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: center; margin-bottom: 24px; }
-        .token-block input { padding: 10px 14px; border: 2px solid #cbd5e1; border-radius: 12px; flex-basis: 320px; flex-grow: 1; max-width: 480px; font-size: 14px; transition: border-color 0.2s, box-shadow 0.2s; }
-        .token-block input:focus { outline: none; border-color: #7c3aed; box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.15); }
-        .token-block button { padding: 10px 16px; border: none; border-radius: 12px; cursor: pointer; font-size: 14px; font-weight: 600; transition: transform 0.15s, box-shadow 0.2s; }
-        .token-block button:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.12); }
-        #tokenConnectBtn { background-color: #7c3aed; color: white; }
-        #tokenDisconnectBtn { background-color: #ef4444; color: white; }
-        #tokenStatus { font-size: 14px; font-weight: 600; color: #16a34a; }
     </style>
 </head>
 <body>
@@ -70,11 +62,7 @@
 <div class="container">
     <div class="wrapper">
         <h2>📋 Чек-лист: Маркировка</h2>
-
-        <div class="format-info">
-            <strong>Как пользоваться:</strong> 
-            <code>&lt;b&gt;&lt;/b&gt;</code> — жирный, <code>&lt;i&gt;&lt;/i&gt;</code> — курсив, <code>&lt;u&gt;&lt;/u&gt;</code> — подчеркнутый, <code>&lt;br&gt;</code> — новая строка 
-        </div>
+        <div class="format-info"><strong>Как пользоваться:</strong> <code>&lt;b&gt;&lt;/b&gt;</code> — жирный, <code>&lt;i&gt;&lt;/i&gt;</code> — курсив, <code>&lt;u&gt;&lt;/u&gt;</code> — подчеркнутый, <code>&lt;br&gt;</code> — новая строка </div>
 
         <div id="mainPanel">
             <div id="alertBox"></div>
@@ -118,6 +106,7 @@
     let tableData = [];
     let editingIndex = null;
     let authToken = '';
+    let currentFileSHA = '';
 
     function saveLocal() { try { localStorage.setItem(LOCAL_KEY, JSON.stringify(tableData)); } catch (e) { console.error('Ошибка локального сохранения:', e); } }
     function loadLocal() { try { const raw = localStorage.getItem(LOCAL_KEY); const data = raw ? JSON.parse(raw) : null; return Array.isArray(data) ? data : null; } catch (e) { return null; } }
@@ -126,8 +115,6 @@
         const box = document.getElementById('alertBox'); 
         if(box){ box.className = `status ${type}`; box.textContent = message; box.style.display = 'block'; setTimeout(() => box.style.display = 'none', 3000); }
     }
-
-    function decodeHTMLEntities(text) { if (!text) return ''; const textArea = document.createElement('textarea'); textArea.innerHTML = text; return textArea.value; }
 
     function renderTable(data) {
         const tbody = document.querySelector('#myTable tbody');
@@ -144,53 +131,21 @@
                 upLink.onclick = (e) => { e.preventDefault(); moveRow(index, 'up'); }; if (index === 0) upLink.style.display = 'none';
                 const downLink = document.createElement('a'); downLink.href = '#'; downLink.innerHTML = '▼'; downLink.className = 'move-down-btn';
                 downLink.onclick = (e) => { e.preventDefault(); moveRow(index, 'down'); }; if (index === data.length - 1) downLink.style.display = 'none';
-                const editLink = document.createElement('a'); editLink.href = '#'; editLink.textContent = 'Ред.'; editLink.className = 'edit-btn'; editLink.onclick = (e) => { e.preventDefault(); startEditing(index); };
+                const editLink = document.createElement('a'); editLink.href = '#'; editLink.textContent = 'Ред.'; editLink.className = 'edit-btn';
+                editLink.onclick = (e) => { e.preventDefault(); startEditing(index); };
                 const delLink = document.createElement('a'); delLink.href = '#'; delLink.textContent = 'Х'; delLink.className = 'delete-btn';
-                delLink.onclick = (e) => { e.preventDefault(); if (confirm('Удалить этот пункт чек-листа?')) { tableData.splice(index, 1); cancelEditing(); renderTable(tableData); saveLocal(); showAlert('Пункт удален.', 'info'); } };
+                delLink.onclick = (e) => { e.preventDefault(); if (confirm('Удалить?')) { tableData.splice(index, 1); cancelEditing(); renderTable(tableData); saveLocal(); showAlert('Пункт удален.', 'info'); } };
                 actionsDiv.appendChild(upLink); actionsDiv.appendChild(downLink); actionsDiv.appendChild(editLink); actionsDiv.appendChild(delLink); 
                 cell4.appendChild(actionsDiv);
             });
         }
     }
 
-    function moveRow(index, direction) { 
-        if (direction === 'up' && index > 0) { [tableData[index], tableData[index - 1]] = [tableData[index - 1], tableData[index]]; renderTable(tableData); saveLocal(); showAlert('Строка перемещена вверх.', 'info'); }
-        if (direction === 'down' && index < tableData.length - 1) { [tableData[index], tableData[index + 1]] = [tableData[index + 1], tableData[index]]; renderTable(tableData); saveLocal(); showAlert('Строка перемещена вниз.', 'info'); }
-    }
-    function startEditing(index) { 
-        editingIndex = index; 
-        const row = tableData[index]; 
-        document.getElementById('newCol1').value = row.col1 || ''; 
-        document.getElementById('newCol2').value = row.col2 || ''; 
-        document.getElementById('newCol3').value = row.col3 || ''; 
-        document.getElementById('addBtn').style.display = 'none'; 
-        document.getElementById('editSaveBtn').style.display = 'inline-block'; 
-        document.getElementById('cancelEditBtn').style.display = 'inline-block';
-    }
-    function cancelEditing() { 
-        editingIndex = null; 
-        document.getElementById('newCol1').value = ''; 
-        document.getElementById('newCol2').value = ''; 
-        document.getElementById('newCol3').value = ''; 
-        document.getElementById('addBtn').style.display = 'inline-block'; 
-        document.getElementById('editSaveBtn').style.display = 'none'; 
-        document.getElementById('cancelEditBtn').style.display = 'none';
-    }
-    function filterTable() { 
-        const filter = document.getElementById('searchInput').value.toLowerCase(); 
-        const rows = document.querySelectorAll('#myTable tbody tr'); 
-        rows.forEach(row => { const text = row.textContent.toLowerCase(); row.style.display = text.includes(filter) ? '' : 'none'; }); 
-    }
-    function handleKeyDown(e) { 
-        const active = document.activeElement; 
-        if (active && active.getAttribute('contenteditable') === 'true') {
-            if (e.ctrlKey && e.key === 'b') { e.preventDefault(); wrapSelection('b'); } 
-            if (e.ctrlKey && e.key === 'i') { e.preventDefault(); wrapSelection('i'); }
-            if (e.ctrlKey && e.key === 'u') { e.preventDefault(); wrapSelection('u'); } 
-            if (e.shiftKey && e.key === 'Enter') { e.preventDefault(); document.execCommand('insertHTML', false, '<br>'); }
-            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); }
-        }
-    }
+    function moveRow(index, direction) { if (direction === 'up' && index > 0) { [tableData[index], tableData[index - 1]] = [tableData[index - 1], tableData[index]]; renderTable(tableData); saveLocal(); showAlert('Строка перемещена вверх.', 'info'); } if (direction === 'down' && index < tableData.length - 1) { [tableData[index], tableData[index + 1]] = [tableData[index + 1], tableData[index]]; renderTable(tableData); saveLocal(); showAlert('Строка перемещена вниз.', 'info'); } }
+    function startEditing(index) { editingIndex = index; const row = tableData[index]; document.getElementById('newCol1').value = row.col1 || ''; document.getElementById('newCol2').value = row.col2 || ''; document.getElementById('newCol3').value = row.col3 || ''; document.getElementById('addBtn').style.display = 'none'; document.getElementById('editSaveBtn').style.display = 'inline-block'; document.getElementById('cancelEditBtn').style.display = 'inline-block'; }
+    function cancelEditing() { editingIndex = null; document.getElementById('newCol1').value = ''; document.getElementById('newCol2').value = ''; document.getElementById('newCol3').value = ''; document.getElementById('addBtn').style.display = 'inline-block'; document.getElementById('editSaveBtn').style.display = 'none'; document.getElementById('cancelEditBtn').style.display = 'none'; }
+    function filterTable() { const filter = document.getElementById('searchInput').value.toLowerCase(); const rows = document.querySelectorAll('#myTable tbody tr'); rows.forEach(row => { const text = row.textContent.toLowerCase(); row.style.display = text.includes(filter) ? '' : 'none'; }); }
+    function handleKeyDown(e) { const active = document.activeElement; if (active && active.getAttribute('contenteditable') === 'true') { if (e.ctrlKey && e.key === 'b') { e.preventDefault(); wrapSelection('b'); } if (e.ctrlKey && e.key === 'i') { e.preventDefault(); wrapSelection('i'); } if (e.ctrlKey && e.key === 'u') { e.preventDefault(); wrapSelection('u'); } if (e.shiftKey && e.key === 'Enter') { e.preventDefault(); document.execCommand('insertHTML', false, '<br>'); } if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); } } }
 
     async function loadFromGist(showMessage = true) {
         try {
@@ -200,30 +155,34 @@
                 showAlert('❌ Файл не найден на сервере.', 'error'); 
                 return; 
             }
+            currentFileSHA = gist.files[FILENAME].sha; // Сохраняем SHA сразу
+            
             const fileUrl = gist.files[FILENAME].raw_url + `?t=${Date.now()}`;
             const raw = await fetch(fileUrl);
             const text = await raw.text();
             const loadedData = JSON.parse(text);
+
             tableData = loadedData;
             renderTable(tableData);
             saveLocal();
-            if (showMessage) showAlert('📥 Данные с сервера загружены.', 'success');
+            if (showMessage) showAlert('📥 Данные загружены.', 'success');
         } catch (e) {
             console.error(e);
-            if (showMessage) showAlert('❌ Не удалось загрузить данные.', 'error');
+            if (showMessage) showAlert('❌ Ошибка сети/GitHub.', 'error');
         }
     }
 
     async function saveToGist() {
         if (!authToken) { showAlert('❌ Токен не задан.', 'error'); return; }
+        if (!currentFileSHA) { showAlert('❌ SHA не определен. Нажмите «Обновить».', 'error'); return; }
 
         const safeData = tableData.map(row => ({
-            col1: decodeHTMLEntities(row.col1 || '').replace(/\"/g, "'").substring(0, 5000),
-            col2: decodeHTMLEntities(row.col2 || '').replace(/\"/g, "'").substring(0, 5000),
-            col3: decodeHTMLEntities(row.col3 || '').replace(/\"/g, "'").substring(0, 5000)
+            col1: (row.col1 || '').replace(/\"/g, "'").substring(0, 5000),
+            col2: (row.col2 || '').replace(/\"/g, "'").substring(0, 5000),
+            col3: (row.col3 || '').replace(/\"/g, "'").substring(0, 5000)
         }));
 
-        const payload = { files: { [FILENAME]: { content: JSON.stringify(safeData, null, 2) } } };
+        const payload = { files: { [FILENAME]: { content: JSON.stringify(safeData, null, 2), sha: currentFileSHA } } };
 
         try {
             const saveRes = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
@@ -231,20 +190,30 @@
                 headers: { 'Authorization': `token ${authToken}`, 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
+
+            if (saveRes.status === 409) { 
+                showAlert('❌ Конфликт версий. Нажмите «Обновить».', 'error'); 
+                document.getElementById('saveBtn').disabled = true; 
+                return; 
+            }
             if (!saveRes.ok) { 
                 const errorText = await saveRes.text(); 
+                console.error("Save Error:", saveRes.status, errorText);
                 if (saveRes.status === 401) { showAlert('❌ Ошибка 401: неверный токен.', 'error'); }
                 else { showAlert(`❌ Ошибка ${saveRes.status}`, 'error'); }
                 return; 
             }
-            showAlert('✅ Сохранено на сервере.', 'success');
+
+            const updatedGist = await saveRes.json();
+            currentFileSHA = updatedGist.files[FILENAME].sha;
+            showAlert('✅ Сохранено.', 'success');
         } catch (e) {
             console.error("Network Error:", e);
             showAlert('❌ Ошибка сети.', 'error');
         }
     }
 
-    /* --- ОБРАБОТЧИКИ --- */
+    /* --- Инициализация --- */
     document.getElementById('addBtn').addEventListener('click', () => {
         const c1 = document.getElementById('newCol1').value.trim();
         const c2 = document.getElementById('newCol2').value.trim();
@@ -284,27 +253,27 @@
     });
 
     document.getElementById('updateBtn').addEventListener('click', () => {
-        if (tableData.length && !confirm('Заменить текущий список данными с сервера?')) return;
+        if (tableData.length && !confirm('Заменить локальные данные серверными?')) return;
         loadFromGist();
     });
 
     document.getElementById('saveBtn').addEventListener('click', saveToGist);
 
-    /* --- ИСПРАВЛЕННАЯ ЛОГИКА ТОКЕНА --- */
+    /* --- ТОКЕН: Исправленная логика отображения --- */
     function updateTokenUI() {
         if (authToken) {
-            if(tokenConnectBtn) tokenConnectBtn.style.display = 'none';
-            if(tokenDisconnectBtn) tokenDisconnectBtn.style.display = 'inline-block';
-            if(tokenStatus) tokenStatus.textContent = '✅ Токен подключен';
+            if(document.getElementById('tokenConnectBtn')) document.getElementById('tokenConnectBtn').style.display = 'none';
+            if(document.getElementById('tokenDisconnectBtn')) document.getElementById('tokenDisconnectBtn').style.display = 'inline-block';
+            if(document.getElementById('tokenStatus')) document.getElementById('tokenStatus').textContent = '✅ Токен подключен';
         } else {
-            if(tokenConnectBtn) tokenConnectBtn.style.display = 'inline-block';
-            if(tokenDisconnectBtn) tokenDisconnectBtn.style.display = 'none';
-            if(tokenStatus) tokenStatus.textContent = '';
+            if(document.getElementById('tokenConnectBtn')) document.getElementById('tokenConnectBtn').style.display = 'inline-block';
+            if(document.getElementById('tokenDisconnectBtn')) document.getElementById('tokenDisconnectBtn').style.display = 'none';
+            if(document.getElementById('tokenStatus')) document.getElementById('tokenStatus').textContent = '';
         }
     }
 
-    if(tokenConnectBtn) tokenConnectBtn.addEventListener('click', () => {
-        const val = tokenInput.value.trim();
+    if(document.getElementById('tokenConnectBtn')) document.getElementById('tokenConnectBtn').addEventListener('click', () => {
+        const val = document.getElementById('tokenInput').value.trim();
         if (!val) { showAlert('Введите токен.', 'error'); return; }
         authToken = val;
         localStorage.setItem(TOKEN_KEY, val);
@@ -312,16 +281,11 @@
         showAlert('✅ Токен подключен.', 'success');
     });
 
-    if(tokenInput) tokenInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') tokenConnectBtn.click(); });
+    if(document.getElementById('tokenInput')) document.getElementById('tokenInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') document.getElementById('tokenConnectBtn').click(); });
+    if(document.getElementById('tokenDisconnectBtn')) document.getElementById('tokenDisconnectBtn').addEventListener('click', () => { authToken = ''; localStorage.removeItem(TOKEN_KEY); updateTokenUI(); showAlert('Токен отключен.', 'info'); });
 
-    if(tokenDisconnectBtn) tokenDisconnectBtn.addEventListener('click', () => {
-        authToken = '';
-        localStorage.removeItem(TOKEN_KEY);
-        updateTokenUI();
-        showAlert('Токен отключен.', 'info');
-    });
+    updateTokenUI();
 
-    /* --- СТАРТ --- */
     const localData = loadLocal();
     if (localData && localData.length) {
         tableData = localData;
