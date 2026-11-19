@@ -288,7 +288,6 @@
         sel.removeAllRanges();
     }
 
-    /* --- ИСПРАВЛЕННАЯ ФУНКЦИЯ --- */
     function renderTable(data) {
         const tbody = document.querySelector('#myTable tbody');
         tbody.innerHTML = '';
@@ -296,7 +295,6 @@
         data.forEach((row, index) => {
             const newRow = tbody.insertRow();
 
-            /* Ячейка 1 */
             const cell1 = newRow.insertCell();
             cell1.innerHTML = row.col1 || '';
             cell1.setAttribute('contenteditable', 'true');
@@ -305,14 +303,12 @@
             cell1.style.color = '#991b1b';
             cell1.style.borderRight = '1px solid #fed7d7';
 
-            /* Ячейка 2 (широкая) */
             const cell2 = newRow.insertCell();
             cell2.innerHTML = row.col2 || '';
             cell2.setAttribute('contenteditable', 'true');
             cell2.style.backgroundColor = '#fff';
             cell2.style.borderRight = '1px solid #f1f5f9';
 
-            /* Ячейка 3 */
             const cell3 = newRow.insertCell();
             cell3.innerHTML = row.col3 || '';
             cell3.setAttribute('contenteditable', 'true');
@@ -320,7 +316,6 @@
             cell3.style.fontStyle = 'italic';
             cell3.style.color = '#047857';
 
-            /* Ячейка 4 (узкая) */
             const cell4 = newRow.insertCell();
             cell4.style.backgroundColor = '#f8fafc';
             cell4.style.padding = '8px';
@@ -428,7 +423,6 @@
         }
     }
 
-    /* Остальной JS (сохранение, токен) остается без изменений */
     async function saveToGist() {
         const token = getToken();
         if (!token) {
@@ -480,20 +474,27 @@
         }
     }
 
+    /* --- ИСПРАВЛЕННАЯ ФУНКЦИЯ ЗАГРУЗКИ --- */
     async function loadFromGist(showMessage = true) {
         try {
             const metaRes = await fetch(`https://api.github.com/gists/${GIST_ID}`);
             const gist = await metaRes.json();
             if (!gist.files || !gist.files[FILENAME]) {
-                showAlert('❌ Файл не найден на сервере.', 'error');
+                if (showMessage) showAlert('❌ Файл не найден на сервере.', 'error');
                 return;
             }
 
             const fileUrl = gist.files[FILENAME].raw_url + `?t=${Date.now()}`;
             const raw = await fetch(fileUrl);
             const text = await raw.text();
-            const loadedData = JSON.parse(text);
 
+            /* --- ЗАЩИТА ОТ ПУСТОГО ОТВЕТА --- */
+            if (!text.trim() || text.trim() === '[]') {
+                if (showMessage) showAlert('⚠️ Файл на сервере пуст. Оставляем локальные данные.', 'info');
+                return; 
+            }
+
+            const loadedData = JSON.parse(text);
             tableData = loadedData;
             renderTable(tableData);
             saveLocal();
@@ -594,14 +595,20 @@
 
     updateTokenUI();
 
-    const localData = loadLocal();
-    if (localData && localData.length) {
-        tableData = localData;
-        renderTable(tableData);
-    } else {
-        loadFromGist();
+    /* --- ИСПРАВЛЕННАЯ ЛОГИНИЦИАЛИЗАЦИЯ --- */
+    if (getToken()) {
+        // Если есть токен, сразу пытаемся подтянуть свежие данные с сервера (без лишнего уведомления)
+        loadFromGist(false); 
     }
 
+    // Если сервер недоступен или файл пуст, используем локальную копию
+    if (!tableData || !tableData.length) {
+        const localData = loadLocal();
+        if (localData && localData.length) {
+            tableData = localData;
+            renderTable(tableData);
+        }
+    }
 </script>
 
 </body>
