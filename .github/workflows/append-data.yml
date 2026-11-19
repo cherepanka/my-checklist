@@ -1,66 +1,58 @@
-name: Append Checklist Data
+name: Webhook Listener (Save to Gist)
 
 on:
-  repository_dispatch:
-    types: [add-checklist-item]
+  workflow_call:
+    inputs:
+      data:
+        required: true
+        type: string
+    secrets:
+      GIST_TOKEN:
+        required: true
+      GIST_ID:
+        required: true
 
 jobs:
-  update-file:
+  save-to-gist:
     runs-on: ubuntu-latest
+    
     steps:
-      - name: Checkout repository
+      - name: Checkout (необязательно, но полезно для логов)
         uses: actions/checkout@v4
 
-      - name: Read current data
-        id: read
-        run: |
-          if [ -f data.json ]; then
-            echo "data=$(cat data.json)" >> $GITHUB_OUTPUT
-          else
-            echo 'data="[]"' >> $GITHUB_OUTPUT
-          fi
-
-      - name: Append new item
+      - name: Parse and Save JSON
         env:
-          NEW_ITEM: ${{ github.event.client_payload.item }}
-          SECRET: ${{ secrets.WEBHOOK_SECRET }}
+          GIST_ID: ${{ inputs.GIST_ID || '0fed9ed549009aa81461d291686d4f50' }}
+          GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
         run: |
-          # Проверка секретного ключа
-          if [ "${{ github.event.client_payload.secret }}" != "$SECRET" ]; then
-            echo "Ошибка: Неверный секретный ключ"
+          echo "Получен вызов workflow_call..."
+          
+          # Проверяем, пришел ли секрет
+          if [ -z "$GIST_TOKEN" ]; then
+            echo "❌ Ошибка: Секрет GIST_TOKEN не найден в настройках репозитория."
             exit 1
           fi
 
-          # Python-скрипт для корректного добавления в JSON
-          python3 - << 'EOF'
-import json
-import os
-
-# Читаем данные, которые подготовили на предыдущем шаге
-current_data = json.loads(os.getenv('data', '[]'))
-
-# Читаем новый элемент из переменной окружения
-new_item = json.loads(os.getenv('NEW_ITEM', '{}'))
-
-# Добавляем новый элемент
-current_data.append(new_item)
-
-# Сохраняем файл с читаемым форматированием (кириллица поддерживается)
-with open('data.json', 'w', encoding='utf-8') as f:
-    json.dump(current_data, f, ensure_ascii=False, indent=2)
-
-print("Файл успешно обновлен")
-EOF
-
-      - name: Commit and Push
-        run: |
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          # Читаем JSON из входных данных
+          echo "${{ inputs.data }}" > temp_input.json
           
-          git add data.json
+          # Формируем payload для Gist
+          CONTENT=$(cat temp_input.json)
+          PAYLOAD="{\"files\":{\"data.json\":{\"content\":\"$CONTENT\"}}}"
           
-          # Если есть изменения (файл изменился)
-          if ! git diff --cached --exit-code; then
-            git commit -m "Add checklist item via web interface [skip ci]"
-            git push
+          echo "Отправка данных в Gist..."
+          
+          # Отправляем PATCH запрос
+          curl -X PATCH \
+            -H "Authorization: token $GIST_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "$PAYLOAD" \
+            "https://api.github.com/gists/$GIST_ID"
+          
+          EXIT_CODE=$?
+          if [ $EXIT_CODE -ne 0 ]; then
+            echo "❌ Curl завершился с ошибкой: $EXIT_CODE"
+            exit 1
           fi
+          
+          echo "✅ Данные успешно отправлены в Gist."
