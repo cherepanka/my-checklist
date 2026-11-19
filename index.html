@@ -76,7 +76,7 @@
     <div class="wrapper">
         <h2>📋 Чек-лист: Маркировка</h2>
 
-        <div class="format-info"><strong>Как пользоваться:</strong> <code>&lt;b&gt;&lt;/b&gt;</code> — жирный, <code>&lt;i&gt;&lt;/i&gt;</code> — курсив, <code>&lt;u&gt;&lt;/u&gt;</code> — подчеркнутый, <code>&lt;br&gt;</code> — новая строка </br> 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 —  токен для поля</div>
+        <div class="format-info"><strong>Как пользоваться:</strong> <code>&lt;b&gt;&lt;/b&gt;</code> — жирный, <code>&lt;i&gt;&lt;/i&gt;</code> — курсив, <code>&lt;u&gt;&lt;/u&gt;</code> — подчеркнутый, <code>&lt;br&gt;</code> — новая строка </br> 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 —  токен для поля </div>
 
         <div id="conflictAlert">
             <span>⚠️ Данные на сервере изменились другим пользователем.</span>
@@ -134,7 +134,7 @@
 
     let tableData = [];
     let editingIndex = null;
-    let currentFileSHA = null;
+    let currentFileSHA = null; /* Хэш версии файла */
 
     function saveLocal() { try { localStorage.setItem(LOCAL_KEY, JSON.stringify(tableData)); } catch (e) { console.error('Ошибка локального сохранения:', e); } }
     function loadLocal() { try { const raw = localStorage.getItem(LOCAL_KEY); const data = raw ? JSON.parse(raw) : null; return Array.isArray(data) ? data : null; } catch (e) { return null; } }
@@ -174,7 +174,7 @@
         try {
             const metaRes = await fetch(`https://api.github.com/gists/${GIST_ID}`);
             const gist = await metaRes.json();
-            if (!gist.files || !gist.files[FILENAME]) { showAlert('❌ Файл не найден на сервере.', 'error'); return null; }
+            if (!gist.files || !gist.files[FILENAME]) { showAlert('❌ Файл не найден на сервере.', 'error'); return; }
             
             const fileUrl = gist.files[FILENAME].raw_url + `?t=${Date.now()}`;
             const raw = await fetch(fileUrl);
@@ -182,21 +182,19 @@
             const loadedData = JSON.parse(text);
 
             tableData = loadedData;
-            currentFileSHA = gist.files[FILENAME].sha;
+            currentFileSHA = gist.files[FILENAME].sha; /* Устанавливаем SHA при загрузке */
             renderTable(tableData);
             saveLocal();
             if (showMessage) showAlert('📥 Данные с сервера загружены.', 'success');
             document.getElementById('conflictAlert').style.display = 'none';
             document.getElementById('saveBtn').disabled = false;
-            return currentFileSHA;
         } catch (e) {
             console.error(e);
             if (showMessage) showAlert('❌ Не удалось загрузить данные с сервера.', 'error');
-            return null;
         }
     }
 
-    /* --- НОВАЯ ФУНКЦИЯ: получаем только SHA для проверки --- */
+    /* --- НОВАЯ ФУНКЦИЯ: только SHA --- */
     async function getRemoteSHA() {
         try {
             const metaRes = await fetch(`https://api.github.com/gists/${GIST_ID}`);
@@ -207,11 +205,14 @@
         }
     }
 
-    /* --- СОХРАНЕНИЕ: проверка SHA без перезаписи данных --- */
+    /* --- СОХРАНЕНИЕ: проверка SHA без перезаписи tableData --- */
     async function saveToGist() {
         const token = getToken();
         if (!token) { showAlert('❌ Токен не задан.', 'error'); return; }
-        if (!currentFileSHA) { showAlert('❌ Сначала обновите данные.', 'error'); return; }
+        if (!currentFileSHA) { 
+            showAlert('❌ SHA не определен. Нажмите «Обновить данные».', 'error'); 
+            return; 
+        }
 
         const safeData = tableData.map(row => ({
             col1: decodeHTMLEntities(row.col1 || '').replace(/\"/g, "'").substring(0, 5000),
@@ -229,13 +230,13 @@
         };
 
         try {
-            /* Проверяем версию ПЕРЕД отправкой */
+            /* Проверяем версию на сервере */
             const remoteSHA = await getRemoteSHA();
             if (remoteSHA && remoteSHA !== currentFileSHA) {
                 showAlert('❌ Конфликт версий. Данные на сервере обновились.', 'error');
                 document.getElementById('conflictAlert').style.display = 'flex';
                 document.getElementById('saveBtn').disabled = true;
-                currentFileSHA = null;
+                currentFileSHA = null; /* Сбрасываем, чтобы заставить обновить */
                 return;
             }
 
@@ -249,7 +250,7 @@
             });
 
             if (saveRes.status === 409) {
-                showAlert('❌ Конфликт версий. Кто-то другой изменил файл.', 'error');
+                showAlert('❌ Конфликт версий (409).', 'error');
                 document.getElementById('conflictAlert').style.display = 'flex';
                 document.getElementById('saveBtn').disabled = true;
                 currentFileSHA = null;
@@ -265,7 +266,7 @@
             }
 
             const updatedGist = await saveRes.json();
-            currentFileSHA = updatedGist.files[FILENAME].sha;
+            currentFileSHA = updatedGist.files[FILENAME].sha; /* Обновляем SHA */
 
             showAlert('✅ Сохранено на сервере.', 'success');
             document.getElementById('conflictAlert').style.display = 'none';
