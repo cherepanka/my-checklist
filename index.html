@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Чек-лист: Ситуация — Решение — Цель</title>
+    <title>Чек-лист: Маркировка</title>
     <style>
         /* --- СТИЛИ (без изменений) --- */
         html, body { height: 100%; margin: 0; padding: 0; font-family: Verdana, Geneva, sans-serif; background-color: #f8f9fa; box-sizing: border-box; }
@@ -199,53 +199,45 @@
         }
     }
 
-    /* --- ФУНКЦИЯ проверки SHA --- */
-    async function getRemoteSHA() {
+    /* --- НОВАЯ ФУНКЦИЯ: Проверка SHA перед сохранением --- */
+    async function checkSHAAndSave() {
         try {
             const metaRes = await fetch(`https://api.github.com/gists/${GIST_ID}`);
             const gist = await metaRes.json();
-            return gist.files ? gist.files[FILENAME].sha : null;
-        } catch (e) {
-            return null;
-        }
-    }
+            const remoteSHA = gist.files ? gist.files[FILENAME].sha : null;
 
-    /* --- СОХРАНЕНИЕ --- */
-    async function saveToGist() {
-        const token = getToken();
-        if (!token) { showAlert('❌ Токен не задан.', 'error'); return; }
-        
-        /* Проверяем, определен ли SHA */
-        if (!currentFileSHA) { 
-            showAlert('❌ SHA не определен. Нажмите «Обновить данные».', 'error'); 
-            return; 
-        }
-
-        const safeData = tableData.map(row => ({
-            col1: decodeHTMLEntities(row.col1 || '').replace(/\"/g, "'").substring(0, 5000),
-            col2: decodeHTMLEntities(row.col2 || '').replace(/\"/g, "'").substring(0, 5000),
-            col3: decodeHTMLEntities(row.col3 || '').replace(/\"/g, "'").substring(0, 5000)
-        }));
-
-        const payload = {
-            files: {
-                [FILENAME]: {
-                    content: JSON.stringify(safeData, null, 2),
-                    sha: currentFileSHA 
-                }
+            if (!remoteSHA) {
+                showAlert('❌ Не удалось получить SHA с сервера.', 'error');
+                return;
             }
-        };
 
-        try {
-            /* Проверяем версию на сервере */
-            const remoteSHA = await getRemoteSHA();
-            if (remoteSHA && remoteSHA !== currentFileSHA) {
+            /* --- Сравниваем SHA --- */
+            if (currentFileSHA !== remoteSHA) {
                 showAlert('❌ Конфликт версий. Данные на сервере обновились.', 'error');
                 document.getElementById('conflictAlert').style.display = 'flex';
                 document.getElementById('saveBtn').disabled = true;
-                currentFileSHA = null; /* Сбрасываем, чтобы заставить нажать "Обновить" */
+                currentFileSHA = null; /* Сбрасываем, чтобы заставить обновить */
                 return;
             }
+
+            /* --- Если SHA совпал, отправляем данные --- */
+            const token = getToken();
+            if (!token) { showAlert('❌ Токен не задан.', 'error'); return; }
+
+            const safeData = tableData.map(row => ({
+                col1: decodeHTMLEntities(row.col1 || '').replace(/\"/g, "'").substring(0, 5000),
+                col2: decodeHTMLEntities(row.col2 || '').replace(/\"/g, "'").substring(0, 5000),
+                col3: decodeHTMLEntities(row.col3 || '').replace(/\"/g, "'").substring(0, 5000)
+            }));
+
+            const payload = {
+                files: {
+                    [FILENAME]: {
+                        content: JSON.stringify(safeData, null, 2),
+                        sha: currentFileSHA 
+                    }
+                }
+            };
 
             const saveRes = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
                 method: 'PATCH',
@@ -327,7 +319,8 @@
         loadFromGist();
     });
 
-    document.getElementById('saveBtn').addEventListener('click', saveToGist);
+    /* --- КНОПКА СОХРАНЕНИЯ: теперь вызывает проверку --- */
+    document.getElementById('saveBtn').addEventListener('click', checkSHAAndSave);
 
     const tokenInput = document.getElementById('tokenInput');
     const tokenConnectBtn = document.getElementById('tokenConnectBtn');
