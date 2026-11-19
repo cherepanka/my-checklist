@@ -127,14 +127,15 @@
 </div>
 
 <script>
+    /* --- ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ --- */
     const GIST_ID = '0fed9ed549009aa81461d291686d4f50';
-    const FILENAME = 'data.json';
     const LOCAL_KEY = 'checklistLocalData';
     const TOKEN_KEY = 'checklistGithubToken';
 
     let tableData = [];
     let editingIndex = null;
     let currentFileSHA = null;
+    let currentFileName = 'data.json'; /* Имя файла по умолчанию */
 
     function saveLocal() { try { localStorage.setItem(LOCAL_KEY, JSON.stringify(tableData)); } catch (e) { console.error('Ошибка локального сохранения:', e); } }
     function loadLocal() { try { const raw = localStorage.getItem(LOCAL_KEY); const data = raw ? JSON.parse(raw) : null; return Array.isArray(data) ? data : null; } catch (e) { return null; } }
@@ -169,20 +170,22 @@
     function filterTable() { const filter = document.getElementById('searchInput').value.toLowerCase(); const rows = document.querySelector('#myTable tbody').querySelectorAll('tr'); rows.forEach(row => { const text = row.textContent.toLowerCase(); row.style.display = text.includes(filter) ? '' : 'none'; }); }
     function handleKeyDown(e) { const active = document.activeElement; if (active && active.getAttribute('contenteditable') === 'true') { if (e.ctrlKey && e.key === 'b') { e.preventDefault(); wrapSelection('b'); } if (e.ctrlKey && e.key === 'i') { e.preventDefault(); wrapSelection('i'); } if (e.ctrlKey && e.key === 'u') { e.preventDefault(); wrapSelection('u'); } if (e.shiftKey && e.key === 'Enter') { e.preventDefault(); document.execCommand('insertHTML', false, '<br>'); } if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); } } }
 
-    /* --- ЗАГРУЗКА --- */
+    /* --- ЗАГРУЗКА: Автоматический поиск имени файла --- */
     async function loadFromGist(showMessage = true) {
         try {
             const metaRes = await fetch(`https://api.github.com/gists/${GIST_ID}`);
             const gist = await metaRes.json();
-            if (!gist.files || !gist.files[FILENAME]) { 
-                console.error("Gist structure error:", gist); 
-                showAlert('❌ Файл не найден в Gist.', 'error'); 
+
+            if (!gist.files || Object.keys(gist.files).length === 0) { 
+                showAlert('❌ Gist пустой или файл не найден.', 'error'); 
                 return; 
             }
 
-            currentFileSHA = gist.files[FILENAME].sha; /* SHA пишется СРАЗУ */
+            /* --- ИСПРАВЛЕНИЕ: берем имя первого файла --- */
+            currentFileName = Object.keys(gist.files)[0]; 
+            currentFileSHA = gist.files[currentFileName].sha; 
 
-            const fileUrl = gist.files[FILENAME].raw_url + `?t=${Date.now()}`;
+            const fileUrl = gist.files[currentFileName].raw_url + `?t=${Date.now()}`;
             const raw = await fetch(fileUrl);
             const text = await raw.text();
             const loadedData = JSON.parse(text);
@@ -195,7 +198,7 @@
             document.getElementById('saveBtn').disabled = false;
         } catch (e) {
             console.error(e);
-            if (showMessage) showAlert('❌ Не удалось загрузить данные с сервера.', 'error');
+            if (showMessage) showAlert('❌ Не удалось загрузить данные.', 'error');
         }
     }
 
@@ -205,18 +208,13 @@
             const metaRes = await fetch(`https://api.github.com/gists/${GIST_ID}`);
             const gist = await metaRes.json();
 
-            if (!gist.files || !gist.files[FILENAME]) {
-                showAlert('❌ Не удалось получить SHA с сервера.', 'error');
-                return;
-            }
-
-            const remoteSHA = gist.files[FILENAME].sha;
-            console.log("Remote SHA:", remoteSHA, "| Local SHA:", currentFileSHA);
-
-            if (!remoteSHA) {
+            if (!gist.files || !gist.files[currentFileName]) {
                 showAlert('❌ Файл не найден на сервере.', 'error');
                 return;
             }
+
+            const remoteSHA = gist.files[currentFileName].sha;
+            console.log("Remote SHA:", remoteSHA, "| Local SHA:", currentFileSHA);
 
             if (currentFileSHA !== remoteSHA) {
                 showAlert('❌ Конфликт версий. Данные на сервере обновились.', 'error');
@@ -237,7 +235,7 @@
 
             const payload = {
                 files: {
-                    [FILENAME]: {
+                    [currentFileName]: {
                         content: JSON.stringify(safeData, null, 2),
                         sha: currentFileSHA 
                     }
@@ -270,7 +268,7 @@
             }
 
             const updatedGist = await saveRes.json();
-            currentFileSHA = updatedGist.files[FILENAME].sha;
+            currentFileSHA = updatedGist.files[currentFileName].sha;
 
             showAlert('✅ Сохранено на сервере.', 'success');
             document.getElementById('conflictAlert').style.display = 'none';
@@ -324,7 +322,6 @@
         loadFromGist();
     });
 
-    /* --- КНОПКА СОХРАНЕНИЯ --- */
     document.getElementById('saveBtn').addEventListener('click', checkSHAAndSave);
 
     const tokenInput = document.getElementById('tokenInput');
