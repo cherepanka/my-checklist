@@ -44,7 +44,7 @@
             color: #004349;
         }
 
-        .action-buttons { display: flex; gap: 14px; margin-bottom: 32px; flex-wrap: wrap; justify-content: center; align-items: center; }
+        .action-buttons { display: flex; gap: 14px; margin-bottom: 32px; flex-wrap: wrap; justify-content: center; }
         .action-buttons button { 
             padding: 8px 16px; border: none; border-radius: 12px; cursor: pointer; 
             font-size: 14px; font-weight: 600; 
@@ -57,7 +57,6 @@
         #cancelEditBtn { background-color: #6b7280; color: white; }
         #saveBtn { background-color: #2563eb; color: white; }
         #updateBtn { background-color: #374151; color: white; }
-        #tokenInput { flex-grow: 1; flex-basis: 300px; }
 
         .input-row { 
             display: flex; gap: 14px; margin-bottom: 32px; align-items: center; flex-wrap: wrap; 
@@ -102,6 +101,24 @@
         .move-down-btn:hover { background-color: #e5e7eb; transform: scale(1.07); }
         td[contenteditable="true"] { cursor: text; outline: none; background-color: white !important; line-height: 1.6; padding: 14px 18px; border: 2px solid transparent; border-radius: 8px; }
         td[contenteditable="true"]:focus { border-color: #2563eb; box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15); background-color: #f8fafc !important; }
+        .token-block {
+            display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+            justify-content: center; margin-bottom: 24px;
+        }
+        .token-block input {
+            padding: 10px 14px; border: 2px solid #cbd5e1; border-radius: 12px;
+            flex-basis: 320px; flex-grow: 1; max-width: 480px; font-size: 14px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .token-block input:focus { outline: none; border-color: #7c3aed; box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.15); }
+        .token-block button {
+            padding: 10px 16px; border: none; border-radius: 12px; cursor: pointer;
+            font-size: 14px; font-weight: 600; transition: transform 0.15s, box-shadow 0.2s;
+        }
+        .token-block button:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.12); }
+        #tokenConnectBtn { background-color: #7c3aed; color: white; }
+        #tokenDisconnectBtn { background-color: #ef4444; color: white; }
+        #tokenStatus { font-size: 14px; font-weight: 600; color: #16a34a; }
     </style>
 </head>
 <body>
@@ -121,7 +138,13 @@
             <div class="action-buttons">
                 <button id="updateBtn">🔄 Обновить данные</button>
                 <button id="saveBtn">💾 Сохранить на сервер</button>
-                <input type="password" id="tokenInput" placeholder="🔑 Введите GitHub Token" style="flex-grow: 1; max-width: 400px;">
+            </div>
+
+            <div class="token-block">
+                <input type="password" id="tokenInput" placeholder="🔑 GitHub-токен (personal access token)">
+                <button id="tokenConnectBtn">Подключить</button>
+                <button id="tokenDisconnectBtn" style="display: none;">🔓 Отключить</button>
+                <span id="tokenStatus"></span>
             </div>
 
             <div class="input-row">
@@ -145,25 +168,34 @@
 <script>
     const GIST_ID = '0fed9ed549009aa81461d291686d4f50';
     const FILENAME = 'data.json';
-
-    // Получаем сохраненный токен из localStorage
-    const savedToken = localStorage.getItem('github_token');
-    const tokenInput = document.getElementById('tokenInput');
-    if (savedToken) {
-        tokenInput.value = savedToken;
-    }
-
-    // Сохраняем токен при вводе
-    tokenInput.addEventListener('input', () => {
-        if (tokenInput.value) {
-            localStorage.setItem('github_token', tokenInput.value);
-        }
-    });
+    const LOCAL_KEY = 'checklistLocalData';
+    const TOKEN_KEY = 'checklistGithubToken';
 
     let tableData = [];
-    let serverLastModified = null;
     let editingIndex = null;
-    let saveTimeout = null;
+
+    // --- ЛОКАЛЬНОЕ АВТОСОХРАНЕНИЕ (без токена и без скачивания файла) ---
+    function saveLocal() {
+        try {
+            localStorage.setItem(LOCAL_KEY, JSON.stringify(tableData));
+        } catch (e) {
+            console.error('Ошибка локального сохранения:', e);
+        }
+    }
+
+    function loadLocal() {
+        try {
+            const raw = localStorage.getItem(LOCAL_KEY);
+            const data = raw ? JSON.parse(raw) : null;
+            return Array.isArray(data) ? data : null;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    // --- ТОКЕН: только ручной ввод на странице ---
+    let authToken = localStorage.getItem(TOKEN_KEY) || '';
+    function getToken() { return authToken; }
 
     function showAlert(message, type = 'info') {
         const box = document.getElementById('alertBox');
@@ -215,7 +247,7 @@
             const editLink = document.createElement('a'); editLink.href = '#'; editLink.textContent = 'Ред.'; editLink.className = 'edit-btn';
             editLink.onclick = (e) => { e.preventDefault(); startEditing(index); };
             const delLink = document.createElement('a'); delLink.href = '#'; delLink.textContent = 'Х'; delLink.className = 'delete-btn';
-            delLink.onclick = (e) => { e.preventDefault(); if (confirm('Удалить этот пункт чек-листа?')) { tableData.splice(index, 1); cancelEditing(); renderTable(tableData); showAlert('Пункт удален.', 'info'); } };
+            delLink.onclick = (e) => { e.preventDefault(); if (confirm('Удалить этот пункт чек-листа?')) { tableData.splice(index, 1); cancelEditing(); renderTable(tableData); saveLocal(); showAlert('Пункт удален.', 'info'); } };
 
             actionsDiv.appendChild(upLink); actionsDiv.appendChild(downLink); actionsDiv.appendChild(editLink); actionsDiv.appendChild(delLink); 
             cell4.appendChild(actionsDiv);
@@ -223,8 +255,8 @@
     }
 
     function moveRow(index, direction) { /* ... код без изменений ... */
-        if (direction === 'up' && index > 0) { [tableData[index], tableData[index - 1]] = [tableData[index - 1], tableData[index]]; renderTable(tableData); showAlert('Строка перемещена вверх.', 'info'); }
-        if (direction === 'down' && index < tableData.length - 1) { [tableData[index], tableData[index + 1]] = [tableData[index + 1], tableData[index]]; renderTable(tableData); showAlert('Строка перемещена вниз.', 'info'); }
+        if (direction === 'up' && index > 0) { [tableData[index], tableData[index - 1]] = [tableData[index - 1], tableData[index]]; renderTable(tableData); saveLocal(); showAlert('Строка перемещена вверх.', 'info'); }
+        if (direction === 'down' && index < tableData.length - 1) { [tableData[index], tableData[index + 1]] = [tableData[index + 1], tableData[index]]; renderTable(tableData); saveLocal(); showAlert('Строка перемещена вниз.', 'info'); }
     }
 
     function startEditing(index) { /* ... код без изменений ... */
@@ -252,140 +284,81 @@
         }
     }
 
-    /* --- ФУНКЦИЯ СОХРАНЕНИЯ С ПРОВЕРКОЙ ВЕРСИИ --- */
+    /* --- СОХРАНЕНИЕ НА СЕРВЕР (нужен токен, вводится на странице) --- */
     async function saveToGist() {
-    if (saveTimeout) clearTimeout(saveTimeout);
-
-    const currentToken = tokenInput.value.trim();
-    if (!currentToken) {
-        showAlert('❌ Введите токен GitHub.', 'error');
-        return;
-    }
-
-    // Очищаем данные от HTML-сущностей и лишних кавычек
-    const safeData = tableData.map(row => ({
-        col1: decodeHTMLEntities(row.col1 || '').replace(/"/g, '\'').substring(0, 5000),
-        col2: decodeHTMLEntities(row.col2 || '').replace(/"/g, '\'').substring(0, 5000),
-        col3: decodeHTMLEntities(row.col3 || '').replace(/"/g, '\'').substring(0, 5000)
-    }));
-
-    const payload = { 
-        files: { 
-            [FILENAME]: { 
-                content: JSON.stringify(safeData, null, 2) 
-            } 
-        } 
-    };
-
-    const headers = {
-        'Authorization': `token ${currentToken}`,
-        'Content-Type': 'application/json'
-        // ЗАГЛОВОК If-Unmodified-Since ЗДЕСЬ УДАЛЕН
-    };
-
-    try {
-        const saveRes = await fetch(`https://api.github.com/gists/${GIST_ID}`, { 
-            method: 'PATCH', 
-            headers: headers, 
-            body: JSON.stringify(payload) 
-        });
-
-        const errorText = await saveRes.text();
-
-        if (!saveRes.ok) {
-            console.error("API Error details:", saveRes.status, errorText);
-            if (saveRes.status === 401) {
-                showAlert('❌ Ошибка 401: Неверный токен.', 'error');
-            } else if (saveRes.status === 403) {
-                showAlert('❌ Ошибка 403: Лимит запросов.', 'error');
-            } else {
-                // Теперь 400 здесь будет только если JSON действительно битый
-                showAlert(`❌ Ошибка ${saveRes.status}: Проверьте данные в ячейках.`, 'error');
-            }
+        const token = getToken();
+        if (!token) {
+            showAlert('❌ Токен не задан. Введите его в поле «GitHub-токен» выше и нажмите «Подключить».', 'error');
             return;
         }
 
-        // Запрос ПРИНЯТ сервером. Теперь проверяем, не перебил ли нас кто-то.
-        showAlert('✅ Отправлено. Ждем подтверждения версии...', 'info');
-        saveTimeout = setTimeout(() => { waitForServerUpdate(tableData); }, 2000);
+        // Очищаем данные от HTML-сущностей и лишних кавычек
+        const safeData = tableData.map(row => ({
+            col1: decodeHTMLEntities(row.col1 || '').replace(/"/g, "'").substring(0, 5000),
+            col2: decodeHTMLEntities(row.col2 || '').replace(/"/g, "'").substring(0, 5000),
+            col3: decodeHTMLEntities(row.col3 || '').replace(/"/g, "'").substring(0, 5000)
+        }));
 
-    } catch (e) {
-        console.error("Network Error:", e);
-        showAlert('❌ Критическая ошибка сети.', 'error');
-    }
-}
-
-    /* --- ФУНКЦИЯ ПРОВЕРКИ ПОСЛЕ СОХРАНЕНИЯ --- */
-    async function waitForServerUpdate(expectedData) {
-        try {
-            showAlert('🔄 Проверка записи на сервере...', 'info');
-            const checkRes = await fetch(`https://api.github.com/gists/${GIST_ID}`);
-            const checkGist = await checkRes.json();
-
-            if (!checkGist.files[FILENAME]) { 
-                showAlert('❌ Файл не найден на сервере.', 'error'); 
-                return; 
-            }
-
-            // Читаем сырой текст с очисткой кэша
-            const fileUrl = checkGist.files[FILENAME].raw_url + `?t=${Date.now()}`;
-            const raw = await fetch(fileUrl);
-            const text = await raw.text();
-            
-            try {
-                const serverData = JSON.parse(text);
-                
-                // Сравниваем данные
-                if (JSON.stringify(serverData) === JSON.stringify(expectedData)) {
-                    // Данные совпали — мы победили
-                    tableData = serverData;
-                    serverLastModified = checkRes.headers.get('Last-Modified'); // Обновляем нашу версию
-                    renderTable(tableData);
-                    showAlert('✅ Данные подтверждены сервером! Вы владеете актуальной версией.', 'success');
-                    return true;
-                } else {
-                    // Данные НЕ совпали (редкий случай, если кто-то вклинился в эти 2 секунды)
-                    showAlert('❌ ОШИБКА: Пока мы сохраняли, файл изменился. Данные не обновлены.', 'error');
-                    return false;
+        const payload = {
+            files: {
+                [FILENAME]: {
+                    content: JSON.stringify(safeData, null, 2)
                 }
-            } catch (e) {
-                showAlert('❌ Ошибка формата JSON на сервере.', 'error'); 
-                return false;
             }
-        } catch (e) { 
-            showAlert('❌ Ошибка связи при проверке.', 'error'); 
-            return false;
+        };
+
+        try {
+            const saveRes = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+                method: 'PATCH',
+                headers: {
+                    'Authorization': `token ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!saveRes.ok) {
+                const errorText = await saveRes.text();
+                console.error("API Error details:", saveRes.status, errorText);
+                if (saveRes.status === 401) {
+                    showAlert('❌ Ошибка 401: неверный или отозванный токен. Проверьте его или подключите заново.', 'error');
+                } else if (saveRes.status === 403) {
+                    showAlert('❌ Ошибка 403: лимит запросов GitHub.', 'error');
+                } else {
+                    showAlert(`❌ Ошибка ${saveRes.status}: проверьте данные в ячейках.`, 'error');
+                }
+                return;
+            }
+
+            showAlert('✅ Сохранено на сервере. Остальные увидят изменения после «Обновить данные».', 'success');
+        } catch (e) {
+            console.error("Network Error:", e);
+            showAlert('❌ Ошибка сети. Проверьте подключение.', 'error');
         }
     }
 
-    /* --- ЗАГРУЗКА --- */
-    async function loadFromGist() {
-        const currentToken = tokenInput.value.trim();
-        if (!currentToken) {
-            showAlert('❌ Введите токен GitHub для загрузки.', 'error');
-            return;
-        }
-
+    /* --- ЗАГРУЗКА С СЕРВЕРА (чтение работает без токена) --- */
+    async function loadFromGist(showMessage = true) {
         try {
-            const metaRes = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
-                headers: { 'Authorization': `token ${currentToken}` }
-            });
+            const metaRes = await fetch(`https://api.github.com/gists/${GIST_ID}`);
             const gist = await metaRes.json();
-            if (!gist.files[FILENAME]) { showAlert('❌ Файл не найден.', 'error'); return; }
+            if (!gist.files || !gist.files[FILENAME]) {
+                showAlert('❌ Файл не найден на сервере.', 'error');
+                return;
+            }
 
             const fileUrl = gist.files[FILENAME].raw_url + `?t=${Date.now()}`;
             const raw = await fetch(fileUrl);
             const text = await raw.text();
             const loadedData = JSON.parse(text);
-            
-            // Сохраняем версию и данные
+
             tableData = loadedData;
-            serverLastModified = metaRes.headers.get('Last-Modified'); 
-            
             renderTable(tableData);
-            showAlert('📥 Данные с сервера загружены.', 'success');
-        } catch (e) { 
-            showAlert('❌ Ошибка формата файла на сервере или неверный токен.', 'error'); 
+            saveLocal();
+            if (showMessage) showAlert('📥 Данные с сервера загружены.', 'success');
+        } catch (e) {
+            console.error(e);
+            if (showMessage) showAlert('❌ Не удалось загрузить данные с сервера.', 'error');
         }
     }
 
@@ -395,11 +368,11 @@
         const c2 = document.getElementById('newCol2').value.trim();
         const c3 = document.getElementById('newCol3').value.trim();
         if (!c1 && !c2 && !c3) return;
-        
-        // Изменение: добавляем запись в начало массива
-        tableData.unshift({ col1: c1, col2: c2, col3: c3 }); 
-        renderTable(tableData); 
+        tableData.push({ col1: c1, col2: c2, col3: c3 });
+        renderTable(tableData);
         cancelEditing();
+        saveLocal();
+        showAlert('Запись добавлена и сохранена.', 'success');
     });
 
     document.getElementById('editSaveBtn').addEventListener('click', () => {
@@ -411,19 +384,85 @@
         tableData[editingIndex] = { col1: c1, col2: c2, col3: c3 };
         renderTable(tableData);
         cancelEditing();
-        showAlert('Пункт обновлен.', 'success');
+        saveLocal();
+        showAlert('Пункт обновлен и сохранен.', 'success');
     });
 
     document.getElementById('cancelEditBtn').addEventListener('click', cancelEditing);
     document.getElementById('searchInput').addEventListener('input', filterTable);
-    document.getElementById('updateBtn').addEventListener('click', loadFromGist);
-    document.getElementById('saveBtn').addEventListener('click', saveToGist);
     document.addEventListener('keydown', handleKeyDown);
 
-    // Автоматическая загрузка при наличии токена
-    if (tokenInput.value) {
+    // Правки прямо в ячейках таблицы тоже сохраняются автоматически
+    document.querySelector('#myTable tbody').addEventListener('input', (e) => {
+        const td = e.target.closest('td');
+        if (!td || td.getAttribute('contenteditable') !== 'true') return;
+        const tr = td.closest('tr');
+        const idx = Array.prototype.indexOf.call(tr.parentNode.children, tr);
+        if (idx < 0 || !tableData[idx]) return;
+        tableData[idx]['col' + (td.cellIndex + 1)] = td.innerHTML;
+        saveLocal();
+    });
+
+    document.getElementById('updateBtn').addEventListener('click', () => {
+        if (tableData.length && !confirm('Заменить текущий список данными с сервера?\nЛокальные изменения, не сохраненные на сервер, будут потеряны.')) return;
+        loadFromGist();
+    });
+
+    document.getElementById('saveBtn').addEventListener('click', saveToGist);
+
+    /* --- ТОКЕН: интерфейс на странице --- */
+    const tokenInput = document.getElementById('tokenInput');
+    const tokenConnectBtn = document.getElementById('tokenConnectBtn');
+    const tokenDisconnectBtn = document.getElementById('tokenDisconnectBtn');
+    const tokenStatus = document.getElementById('tokenStatus');
+
+    function updateTokenUI() {
+        if (authToken) {
+            tokenInput.style.display = 'none';
+            tokenConnectBtn.style.display = 'none';
+            tokenDisconnectBtn.style.display = 'inline-block';
+            tokenStatus.textContent = '✅ Токен подключен';
+        } else {
+            tokenInput.style.display = '';
+            tokenConnectBtn.style.display = 'inline-block';
+            tokenDisconnectBtn.style.display = 'none';
+            tokenStatus.textContent = '';
+        }
+    }
+
+    tokenConnectBtn.addEventListener('click', () => {
+        const val = tokenInput.value.trim();
+        if (!val) { showAlert('Введите токен перед подключением.', 'error'); return; }
+        authToken = val;
+        localStorage.setItem(TOKEN_KEY, val);
+        tokenInput.value = '';
+        updateTokenUI();
+        showAlert('✅ Токен подключен. Теперь можно сохранять на сервер.', 'success');
+    });
+
+    tokenInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') tokenConnectBtn.click();
+    });
+
+    tokenDisconnectBtn.addEventListener('click', () => {
+        authToken = '';
+        localStorage.removeItem(TOKEN_KEY);
+        updateTokenUI();
+        showAlert('Токен отключен в этом браузере.', 'info');
+    });
+
+    updateTokenUI();
+
+    /* --- СТАРТ --- */
+    const localData = loadLocal();
+    if (localData && localData.length) {
+        // Локальная версия главнее — сервер перезаписываем только по кнопке «Обновить данные»
+        tableData = localData;
+        renderTable(tableData);
+    } else {
         loadFromGist();
     }
+
 </script>
 
 </body>
