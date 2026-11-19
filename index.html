@@ -169,7 +169,7 @@
     function filterTable() { const filter = document.getElementById('searchInput').value.toLowerCase(); const rows = document.querySelector('#myTable tbody').querySelectorAll('tr'); rows.forEach(row => { const text = row.textContent.toLowerCase(); row.style.display = text.includes(filter) ? '' : 'none'; }); }
     function handleKeyDown(e) { const active = document.activeElement; if (active && active.getAttribute('contenteditable') === 'true') { if (e.ctrlKey && e.key === 'b') { e.preventDefault(); wrapSelection('b'); } if (e.ctrlKey && e.key === 'i') { e.preventDefault(); wrapSelection('i'); } if (e.ctrlKey && e.key === 'u') { e.preventDefault(); wrapSelection('u'); } if (e.shiftKey && e.key === 'Enter') { e.preventDefault(); document.execCommand('insertHTML', false, '<br>'); } if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); } } }
 
-    /* --- ЗАГРУЗКА: SHA устанавливается СРАЗУ --- */
+    /* --- ЗАГРУЗКА: SHA устанавливается МГНОВЕННО --- */
     async function loadFromGist(showMessage = true) {
         try {
             const metaRes = await fetch(`https://api.github.com/gists/${GIST_ID}`);
@@ -179,7 +179,7 @@
                 return; 
             }
 
-            /* --- КРИТИЧЕСКОЕ ИЗМЕНЕНИЕ: SHA записывается ПЕРЕД загрузкой тела --- */
+            /* --- КРИТИЧЕСКОЕ ИЗМЕНЕНИЕ: SHA пишется СРАЗУ --- */
             currentFileSHA = gist.files[FILENAME].sha; 
 
             const fileUrl = gist.files[FILENAME].raw_url + `?t=${Date.now()}`;
@@ -214,6 +214,8 @@
     async function saveToGist() {
         const token = getToken();
         if (!token) { showAlert('❌ Токен не задан.', 'error'); return; }
+        
+        /* Проверяем, определен ли SHA */
         if (!currentFileSHA) { 
             showAlert('❌ SHA не определен. Нажмите «Обновить данные».', 'error'); 
             return; 
@@ -235,7 +237,7 @@
         };
 
         try {
-            /* Проверяем версию */
+            /* Проверяем версию на сервере */
             const remoteSHA = await getRemoteSHA();
             if (remoteSHA && remoteSHA !== currentFileSHA) {
                 showAlert('❌ Конфликт версий. Данные на сервере обновились.', 'error');
