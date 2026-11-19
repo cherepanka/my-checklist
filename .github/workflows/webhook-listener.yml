@@ -1,21 +1,47 @@
-name: Webhook Listener for Checklist
+name: Save Checklist to Gist
 
 on:
-  workflow_dispatch: # Позволяет запускать вручную (для тестов)
-  repository_dispatch: # Если вы все же решите использовать dispatch
-  # ЛУЧШЕЕ РЕШЕНИЕ: Используем workflow_call, чтобы вызывать его как функцию
-  # Но для браузера проще всего использовать "public endpoint" через workflow_dispatch 
-  # с секретом в URL (небезопасно) или через стандартный workflow_run.
-  
-# Самый надежный способ для браузера: 
-# Мы создаем workflow, который принимает данные через "Input" и делает коммит.
-# Но GitHub не дает запускать workflows из браузера напрямую без токена.
+  workflow_call:
+    inputs:
+      payload:
+        required: true
+        type: string
+    secrets:
+      GIST_TOKEN:
+        required: true
+      GIST_ID:
+        required: true
 
-# --- ВЫХОД ИЗ СИТУАЦИИ: Используем сторонний прокси-сервис (Webhook.site или Pipedream) ---
-# ИЛИ используем Pages + JS + Action (сложная связка)
-
-# Давайте используем самый простой рабочий вариант: Action, который делает коммит.
-# Но его нельзя запустить из браузера БЕЗ токена.
-
-# ПРАВИЛЬНОЕ РЕШЕНИЕ ДЛЯ БРАУЗЕРА (без токена в коде):
-# Используем сервис "Incoming Webhook" (например, Pipedream.com)
+jobs:
+  update-gist:
+    runs-on: ubuntu-latest
+    permissions: {} # Минимальные права
+    
+    steps:
+      - name: Update Gist
+        env:
+          TOKEN: ${{ secrets.GIST_TOKEN }}
+          ID: ${{ secrets.GIST_ID }}
+          DATA: ${{ inputs.payload }}
+        run: |
+          if [ -z "$TOKEN" ]; then
+            echo "Error: Token is missing"
+            exit 1
+          fi
+          
+          # Формируем JSON для API GitHub
+          PAYLOAD=$(printf '{"files":{"data.json":{"content":%s}}}' "$DATA")
+          
+          # Отправляем запрос
+          curl --retry 3 --retry-delay 2 \
+            -X PATCH \
+            -H "Authorization: token $TOKEN" \
+            -H "Content-Type: application/json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            -d "$PAYLOAD" \
+            "https://api.github.com/gists/$ID"
+          
+          if [ $? -ne 0 ]; then
+            echo "Curl request failed"
+            exit 1
+          fi
