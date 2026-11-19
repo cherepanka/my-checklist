@@ -31,15 +31,14 @@
         th:nth-child(3) { width: 1fr; }
         th:last-child { width: 80px; border-right: none; text-align: center; }
         
-        tbody tr { border-bottom: 1px solid #f1f5f9; transition: background-color 0.2s; }
+        tbody tr { display: grid; grid-template-columns: 1fr 2fr 1fr 160px; align-items: center; border-bottom: 1px solid #f1f5f9; transition: background-color 0.2s; }
         tbody tr:hover { background-color: #f8fafc; }
         tbody tr:last-child { border-bottom: none; }
         
-        td { padding: 14px 18px; text-align: left; word-wrap: break-word; color: #475569; min-height: 52px; position: relative; line-height: 1.6; border-right: 1px solid #f1f5f9; vertical-align: top; overflow: hidden; text-overflow: ellipsis; }
+        td { padding: 14px 18px; text-align: left; word-wrap: break-word; color: #475569; min-height: 52px; position: relative; line-height: 1.6; border-right: 1px solid #f1f5f9; }
         td:last-child { border-right: none; text-align: center; padding: 8px; }
-        
         td:first-child { background-color: #fef2f2; font-weight: 700; color: #991b1b; border-right: 1px solid #fed7d7; }
-        td:nth-child(2) { background-color: #fff; border-right: 1px solid #f1f5f9; }
+        td:nth-child(2) { border-right: 1px solid #f1f5f9; }
         td:nth-child(3) { background-color: #f0fdf9; font-style: italic; color: #047857; }
 
         .action-buttons-cell { display: flex; gap: 4px; padding: 0; justify-content: center; flex-wrap: wrap; }
@@ -118,50 +117,89 @@
 
     let tableData = [];
     let editingIndex = null;
-    let authToken = localStorage.getItem(TOKEN_KEY) || '';
+    let authToken = '';
 
     function saveLocal() { try { localStorage.setItem(LOCAL_KEY, JSON.stringify(tableData)); } catch (e) { console.error('Ошибка локального сохранения:', e); } }
     function loadLocal() { try { const raw = localStorage.getItem(LOCAL_KEY); const data = raw ? JSON.parse(raw) : null; return Array.isArray(data) ? data : null; } catch (e) { return null; } }
 
     function showAlert(message, type = 'info') { 
         const box = document.getElementById('alertBox'); 
-        box.className = `status ${type}`; 
-        box.textContent = message; 
-        box.style.display = 'block'; 
-        setTimeout(() => box.style.display = 'none', 3000); 
+        if(box){ box.className = `status ${type}`; box.textContent = message; box.style.display = 'block'; setTimeout(() => box.style.display = 'none', 3000); }
     }
+
     function decodeHTMLEntities(text) { if (!text) return ''; const textArea = document.createElement('textarea'); textArea.innerHTML = text; return textArea.value; }
-    function wrapSelection(tag) { const sel = window.getSelection(); if (sel.isCollapsed || !sel.rangeCount) return; const active = document.activeElement; if (!active || active.getAttribute('contenteditable') !== 'true') return; const range = sel.getRangeAt(0); const selectedText = range.extractContents(); const wrapper = document.createElement(tag); wrapper.appendChild(selectedText); range.insertNode(wrapper); sel.removeAllRanges(); }
 
     function renderTable(data) {
         const tbody = document.querySelector('#myTable tbody');
-        tbody.innerHTML = '';
-        data.forEach((row, index) => {
-            const newRow = tbody.insertRow();
-            const cell1 = newRow.insertCell(); cell1.innerHTML = row.col1 || ''; cell1.setAttribute('contenteditable', 'true'); cell1.style.backgroundColor = '#fef2f2'; cell1.style.fontWeight = '700'; cell1.style.color = '#991b1b'; cell1.style.borderRight = '1px solid #fed7d7';
-            const cell2 = newRow.insertCell(); cell2.innerHTML = row.col2 || ''; cell2.setAttribute('contenteditable', 'true'); cell2.style.backgroundColor = '#fff'; cell2.style.borderRight = '1px solid #f1f5f9';
-            const cell3 = newRow.insertCell(); cell3.innerHTML = row.col3 || ''; cell3.setAttribute('contenteditable', 'true'); cell3.style.backgroundColor = '#f0fdf9'; cell3.style.fontStyle = 'italic'; cell3.style.color = '#047857';
-            const cell4 = newRow.insertCell(); cell4.style.backgroundColor = '#f8fafc'; cell4.style.padding = '8px'; cell4.style.textAlign = 'center';
-            const actionsDiv = document.createElement('div'); actionsDiv.className = 'action-buttons-cell';
-            const upLink = document.createElement('a'); upLink.href = '#'; upLink.innerHTML = '▲'; upLink.className = 'move-up-btn'; upLink.onclick = (e) => { e.preventDefault(); moveRow(index, 'up'); }; if (index === 0) upLink.style.display = 'none';
-            const downLink = document.createElement('a'); downLink.href = '#'; downLink.innerHTML = '▼'; downLink.className = 'move-down-btn'; downLink.onclick = (e) => { e.preventDefault(); moveRow(index, 'down'); }; if (index === data.length - 1) downLink.style.display = 'none';
-            const editLink = document.createElement('a'); editLink.href = '#'; editLink.textContent = 'Ред.'; editLink.className = 'edit-btn'; editLink.onclick = (e) => { e.preventDefault(); startEditing(index); };
-            const delLink = document.createElement('a'); delLink.href = '#'; delLink.textContent = 'Х'; delLink.className = 'delete-btn'; delLink.onclick = (e) => { e.preventDefault(); if (confirm('Удалить этот пункт чек-листа?')) { tableData.splice(index, 1); cancelEditing(); renderTable(tableData); saveLocal(); showAlert('Пункт удален.', 'info'); } };
-            actionsDiv.appendChild(upLink); actionsDiv.appendChild(downLink); actionsDiv.appendChild(editLink); actionsDiv.appendChild(delLink); cell4.appendChild(actionsDiv);
-        });
+        if(tbody){
+            tbody.innerHTML = '';
+            data.forEach((row, index) => {
+                const newRow = tbody.insertRow();
+                const cell1 = newRow.insertCell(); cell1.innerHTML = row.col1 || ''; cell1.setAttribute('contenteditable', 'true');
+                const cell2 = newRow.insertCell(); cell2.innerHTML = row.col2 || ''; cell2.setAttribute('contenteditable', 'true');
+                const cell3 = newRow.insertCell(); cell3.innerHTML = row.col3 || ''; cell3.setAttribute('contenteditable', 'true');
+                const cell4 = newRow.insertCell(); 
+                const actionsDiv = document.createElement('div'); actionsDiv.className = 'action-buttons-cell';
+                const upLink = document.createElement('a'); upLink.href = '#'; upLink.innerHTML = '▲'; upLink.className = 'move-up-btn';
+                upLink.onclick = (e) => { e.preventDefault(); moveRow(index, 'up'); }; if (index === 0) upLink.style.display = 'none';
+                const downLink = document.createElement('a'); downLink.href = '#'; downLink.innerHTML = '▼'; downLink.className = 'move-down-btn';
+                downLink.onclick = (e) => { e.preventDefault(); moveRow(index, 'down'); }; if (index === data.length - 1) downLink.style.display = 'none';
+                const editLink = document.createElement('a'); editLink.href = '#'; editLink.textContent = 'Ред.'; editLink.className = 'edit-btn'; editLink.onclick = (e) => { e.preventDefault(); startEditing(index); };
+                const delLink = document.createElement('a'); delLink.href = '#'; delLink.textContent = 'Х'; delLink.className = 'delete-btn';
+                delLink.onclick = (e) => { e.preventDefault(); if (confirm('Удалить этот пункт чек-листа?')) { tableData.splice(index, 1); cancelEditing(); renderTable(tableData); saveLocal(); showAlert('Пункт удален.', 'info'); } };
+                actionsDiv.appendChild(upLink); actionsDiv.appendChild(downLink); actionsDiv.appendChild(editLink); actionsDiv.appendChild(delLink); 
+                cell4.appendChild(actionsDiv);
+            });
+        }
     }
 
-    function moveRow(index, direction) { if (direction === 'up' && index > 0) { [tableData[index], tableData[index - 1]] = [tableData[index - 1], tableData[index]]; renderTable(tableData); saveLocal(); showAlert('Строка перемещена вверх.', 'info'); } if (direction === 'down' && index < tableData.length - 1) { [tableData[index], tableData[index + 1]] = [tableData[index + 1], tableData[index]]; renderTable(tableData); saveLocal(); showAlert('Строка перемещена вниз.', 'info'); } }
-    function startEditing(index) { editingIndex = index; const row = tableData[index]; document.getElementById('newCol1').value = row.col1.replace(/<[^>]*>/g, ''); document.getElementById('newCol2').value = row.col2.replace(/<[^>]*>/g, ''); document.getElementById('newCol3').value = row.col3.replace(/<[^>]*>/g, ''); document.getElementById('addBtn').style.display = 'none'; document.getElementById('editSaveBtn').style.display = 'inline-block'; document.getElementById('cancelEditBtn').style.display = 'inline-block'; }
-    function cancelEditing() { editingIndex = null; document.getElementById('newCol1').value = ''; document.getElementById('newCol2').value = ''; document.getElementById('newCol3').value = ''; document.getElementById('addBtn').style.display = 'inline-block'; document.getElementById('editSaveBtn').style.display = 'none'; document.getElementById('cancelEditBtn').style.display = 'none'; }
-    function filterTable() { const filter = document.getElementById('searchInput').value.toLowerCase(); const rows = document.querySelector('#myTable tbody').querySelectorAll('tr'); rows.forEach(row => { const text = row.textContent.toLowerCase(); row.style.display = text.includes(filter) ? '' : 'none'; }); }
-    function handleKeyDown(e) { const active = document.activeElement; if (active && active.getAttribute('contenteditable') === 'true') { if (e.ctrlKey && e.key === 'b') { e.preventDefault(); wrapSelection('b'); } if (e.ctrlKey && e.key === 'i') { e.preventDefault(); wrapSelection('i'); } if (e.ctrlKey && e.key === 'u') { e.preventDefault(); wrapSelection('u'); } if (e.shiftKey && e.key === 'Enter') { e.preventDefault(); document.execCommand('insertHTML', false, '<br>'); } if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); } } }
+    function moveRow(index, direction) { 
+        if (direction === 'up' && index > 0) { [tableData[index], tableData[index - 1]] = [tableData[index - 1], tableData[index]]; renderTable(tableData); saveLocal(); showAlert('Строка перемещена вверх.', 'info'); }
+        if (direction === 'down' && index < tableData.length - 1) { [tableData[index], tableData[index + 1]] = [tableData[index + 1], tableData[index]]; renderTable(tableData); saveLocal(); showAlert('Строка перемещена вниз.', 'info'); }
+    }
+    function startEditing(index) { 
+        editingIndex = index; 
+        const row = tableData[index]; 
+        document.getElementById('newCol1').value = row.col1 || ''; 
+        document.getElementById('newCol2').value = row.col2 || ''; 
+        document.getElementById('newCol3').value = row.col3 || ''; 
+        document.getElementById('addBtn').style.display = 'none'; 
+        document.getElementById('editSaveBtn').style.display = 'inline-block'; 
+        document.getElementById('cancelEditBtn').style.display = 'inline-block';
+    }
+    function cancelEditing() { 
+        editingIndex = null; 
+        document.getElementById('newCol1').value = ''; 
+        document.getElementById('newCol2').value = ''; 
+        document.getElementById('newCol3').value = ''; 
+        document.getElementById('addBtn').style.display = 'inline-block'; 
+        document.getElementById('editSaveBtn').style.display = 'none'; 
+        document.getElementById('cancelEditBtn').style.display = 'none';
+    }
+    function filterTable() { 
+        const filter = document.getElementById('searchInput').value.toLowerCase(); 
+        const rows = document.querySelectorAll('#myTable tbody tr'); 
+        rows.forEach(row => { const text = row.textContent.toLowerCase(); row.style.display = text.includes(filter) ? '' : 'none'; }); 
+    }
+    function handleKeyDown(e) { 
+        const active = document.activeElement; 
+        if (active && active.getAttribute('contenteditable') === 'true') {
+            if (e.ctrlKey && e.key === 'b') { e.preventDefault(); wrapSelection('b'); } 
+            if (e.ctrlKey && e.key === 'i') { e.preventDefault(); wrapSelection('i'); }
+            if (e.ctrlKey && e.key === 'u') { e.preventDefault(); wrapSelection('u'); } 
+            if (e.shiftKey && e.key === 'Enter') { e.preventDefault(); document.execCommand('insertHTML', false, '<br>'); }
+            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); }
+        }
+    }
 
     async function loadFromGist(showMessage = true) {
         try {
             const metaRes = await fetch(`https://api.github.com/gists/${GIST_ID}`);
             const gist = await metaRes.json();
-            if (!gist.files || !gist.files[FILENAME]) { showAlert('❌ Файл не найден на сервере.', 'error'); return; }
+            if (!gist.files || !gist.files[FILENAME]) { 
+                showAlert('❌ Файл не найден на сервере.', 'error'); 
+                return; 
+            }
             const fileUrl = gist.files[FILENAME].raw_url + `?t=${Date.now()}`;
             const raw = await fetch(fileUrl);
             const text = await raw.text();
@@ -177,8 +215,7 @@
     }
 
     async function saveToGist() {
-        const token = getToken();
-        if (!token) { showAlert('❌ Токен не задан.', 'error'); return; }
+        if (!authToken) { showAlert('❌ Токен не задан.', 'error'); return; }
 
         const safeData = tableData.map(row => ({
             col1: decodeHTMLEntities(row.col1 || '').replace(/\"/g, "'").substring(0, 5000),
@@ -186,29 +223,19 @@
             col3: decodeHTMLEntities(row.col3 || '').replace(/\"/g, "'").substring(0, 5000)
         }));
 
-        const payload = {
-            files: {
-                [FILENAME]: {
-                    content: JSON.stringify(safeData, null, 2)
-                }
-            }
-        };
+        const payload = { files: { [FILENAME]: { content: JSON.stringify(safeData, null, 2) } } };
 
         try {
             const saveRes = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
                 method: 'PATCH',
-                headers: {
-                    'Authorization': `token ${token}`,
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Authorization': `token ${authToken}`, 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
-
-            if (!saveRes.ok) {
-                const errorText = await saveRes.text();
+            if (!saveRes.ok) { 
+                const errorText = await saveRes.text(); 
                 if (saveRes.status === 401) { showAlert('❌ Ошибка 401: неверный токен.', 'error'); }
                 else { showAlert(`❌ Ошибка ${saveRes.status}`, 'error'); }
-                return;
+                return; 
             }
             showAlert('✅ Сохранено на сервере.', 'success');
         } catch (e) {
@@ -217,6 +244,7 @@
         }
     }
 
+    /* --- ОБРАБОТЧИКИ --- */
     document.getElementById('addBtn').addEventListener('click', () => {
         const c1 = document.getElementById('newCol1').value.trim();
         const c2 = document.getElementById('newCol2').value.trim();
@@ -226,7 +254,7 @@
         renderTable(tableData);
         cancelEditing();
         saveLocal();
-        showAlert('Запись добавлена первой.', 'success');
+        showAlert('Запись добавлена.', 'success');
     });
 
     document.getElementById('editSaveBtn').addEventListener('click', () => {
@@ -262,27 +290,38 @@
 
     document.getElementById('saveBtn').addEventListener('click', saveToGist);
 
-    const tokenInput = document.getElementById('tokenInput');
-    const tokenConnectBtn = document.getElementById('tokenConnectBtn');
-    const tokenDisconnectBtn = document.getElementById('tokenDisconnectBtn');
-    const tokenStatus = document.getElementById('tokenStatus');
-
+    /* --- ИСПРАВЛЕННАЯ ЛОГИКА ТОКЕНА --- */
     function updateTokenUI() {
         if (authToken) {
-            tokenInput.style.display = 'none';
-            tokenConnectBtn.style.display = 'none';
-            tokenDisconnectBtn.style.display = 'inline-block';
-            tokenStatus.textContent = '✅ Токен подключен';
+            if(tokenConnectBtn) tokenConnectBtn.style.display = 'none';
+            if(tokenDisconnectBtn) tokenDisconnectBtn.style.display = 'inline-block';
+            if(tokenStatus) tokenStatus.textContent = '✅ Токен подключен';
         } else {
-            tokenInput.style.display = '';
-            tokenConnectBtn.style.display = 'inline-block';
-            tokenDisconnectBtn.style.display = 'none';
-            tokenStatus.textContent = '';
+            if(tokenConnectBtn) tokenConnectBtn.style.display = 'inline-block';
+            if(tokenDisconnectBtn) tokenDisconnectBtn.style.display = 'none';
+            if(tokenStatus) tokenStatus.textContent = '';
         }
     }
 
-    updateTokenUI();
+    if(tokenConnectBtn) tokenConnectBtn.addEventListener('click', () => {
+        const val = tokenInput.value.trim();
+        if (!val) { showAlert('Введите токен.', 'error'); return; }
+        authToken = val;
+        localStorage.setItem(TOKEN_KEY, val);
+        updateTokenUI();
+        showAlert('✅ Токен подключен.', 'success');
+    });
 
+    if(tokenInput) tokenInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') tokenConnectBtn.click(); });
+
+    if(tokenDisconnectBtn) tokenDisconnectBtn.addEventListener('click', () => {
+        authToken = '';
+        localStorage.removeItem(TOKEN_KEY);
+        updateTokenUI();
+        showAlert('Токен отключен.', 'info');
+    });
+
+    /* --- СТАРТ --- */
     const localData = loadLocal();
     if (localData && localData.length) {
         tableData = localData;
